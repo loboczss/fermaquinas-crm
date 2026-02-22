@@ -17,9 +17,8 @@ export default defineEventHandler(async (event) => {
     // Obtém o usuário da sessão
     const { data: { user }, error: sessionError } = await client.auth.getUser()
 
-    // Se não há sessão, retorna vendedor como padrão (sem erro 401)
+    // Se não há sessão, retorna vendedor como padrão silenciosamente
     if (sessionError || !user?.id) {
-      console.warn('[API auth/role] Sem sessão de autenticação, retornando role padrão')
       return { role: 'vendedor', userId: null }
     }
 

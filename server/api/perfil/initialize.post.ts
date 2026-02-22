@@ -17,7 +17,7 @@ export default defineEventHandler(async (event) => {
     const { data: { user }, error: sessionError } = await client.auth.getUser()
 
     if (sessionError || !user?.id) {
-      console.warn('[API perfil/initialize] Sem sessão de autenticação')
+      // Silenciosamente retorna false se não há autenticação - é esperado no primeiro acesso
       return { success: false, message: 'Não autenticado' }
     }
 
@@ -35,7 +35,6 @@ export default defineEventHandler(async (event) => {
 
     // Se perfil já existe, retorna os dados existentes
     if (existingProfile) {
-      console.log('[API perfil/initialize] Perfil já existe para usuário:', user.id)
       return {
         success: true,
         message: 'Perfil já existe',
@@ -60,7 +59,6 @@ export default defineEventHandler(async (event) => {
       return { success: false, message: 'Erro ao criar perfil', error: createError }
     }
 
-    console.log('[API perfil/initialize] Perfil criado para usuário:', user.id)
     return {
       success: true,
       message: 'Perfil criado com sucesso',
