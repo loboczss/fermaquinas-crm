@@ -49,6 +49,23 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
+    /**
+     * Inicializa o perfil do usuário (cria se não existir)
+     * Deve ser chamada quando usuário faz login
+     */
+    async initializeProfile() {
+      try {
+        const response = await $fetch('/api/perfil/initialize', {
+          method: 'POST'
+        })
+        console.log('[AuthStore] Perfil inicializado:', response)
+        return response
+      } catch (err: any) {
+        console.error('[AuthStore] Erro ao inicializar perfil:', err)
+        // Não é crítico, o usuário continuará podendo usar a app
+      }
+    },
+
     /** Limpa o estado (chamar no logout) */
     clearAuth() {
       this.userRole = null

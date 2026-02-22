@@ -8,6 +8,8 @@ const authStore = useAuthStore()
 // Buscar role do usuário quando ele estiver autenticado
 watch(user, async (newUser) => {
   if (newUser) {
+    // Inicializa o perfil (cria se não existir) e busca o role
+    await authStore.initializeProfile()
     await authStore.fetchUserRole()
   } else {
     authStore.clearAuth()

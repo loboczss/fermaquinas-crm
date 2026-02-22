@@ -10,49 +10,51 @@ import { serverSupabaseClient, serverSupabaseServiceRole } from '#supabase/serve
  * tenta com service role como fallback.
  */
 export default defineEventHandler(async (event) => {
-  const client = await serverSupabaseClient(event)
-  const serviceRole = serverSupabaseServiceRole(event)
+  try {
+    const client = await serverSupabaseClient(event)
+    const serviceRole = serverSupabaseServiceRole(event)
 
-  // Obtém o usuário da sessão
-  const { data: { user }, error: sessionError } = await client.auth.getUser()
+    // Obtém o usuário da sessão
+    const { data: { user }, error: sessionError } = await client.auth.getUser()
 
-  if (sessionError || !user?.id) {
-    console.error('[API auth/role] Erro de sessão:', sessionError)
-    throw createError({
-      statusCode: 401,
-      statusMessage: 'Unauthorized',
-      message: 'Usuário não autenticado',
-    })
-  }
+    // Se não há sessão, retorna vendedor como padrão (sem erro 401)
+    if (sessionError || !user?.id) {
+      console.warn('[API auth/role] Sem sessão de autenticação, retornando role padrão')
+      return { role: 'vendedor', userId: null }
+    }
 
-  // Tenta buscar o role com o client autenticado
-  let { data: profile, error: profileError } = await client
-    .from('profiles')
-    .select('role')
-    .eq('user_id', user.id)
-    .single()
-
-  // Se houver erro (pode ser RLS ou perfil não existe), tenta com service role
-  if (profileError) {
-    console.warn('[API auth/role] Erro com client auth, tentando service role:', profileError)
-    
-    const { data: serviceProfile, error: serviceError } = await serviceRole
+    // Tenta buscar o role com o client autenticado
+    let { data: profile, error: profileError } = await client
       .from('profiles')
       .select('role')
       .eq('user_id', user.id)
-      .single()
+      .maybeSingle()
 
-    if (serviceError) {
-      console.error('[API auth/role] Erro também com service role:', serviceError)
-      // Se ainda assim falhar, retorna vendedor como fallback SEGURO
-      return { role: 'vendedor', userId: user.id }
+    // Se houver erro (pode ser RLS ou perfil não existe), tenta com service role
+    if (profileError) {
+      console.warn('[API auth/role] Erro com client auth, tentando service role:', profileError)
+      
+      const { data: serviceProfile, error: serviceError } = await serviceRole
+        .from('profiles')
+        .select('role')
+        .eq('user_id', user.id)
+        .maybeSingle()
+
+      if (serviceError) {
+        console.error('[API auth/role] Erro também com service role:', serviceError)
+        // Se ainda assim falhar, retorna vendedor como fallback SEGURO
+        return { role: 'vendedor', userId: user.id }
+      }
+
+      profile = serviceProfile
     }
 
-    profile = serviceProfile
-  }
-
-  return {
-    role: profile?.role || 'vendedor',
-    userId: user.id,
+    return {
+      role: profile?.role || 'vendedor',
+      userId: user.id,
+    }
+  } catch (error: any) {
+    console.error('[API auth/role] Erro não tratado:', error)
+    return { role: 'vendedor', userId: null }
   }
 })

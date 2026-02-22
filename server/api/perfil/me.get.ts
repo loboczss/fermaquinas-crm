@@ -45,7 +45,7 @@ export default defineEventHandler(async (event) => {
       .from('profiles')
       .select('role')
       .eq('user_id', user.id)
-      .single()
+      .maybeSingle()
 
     // Se falhar com client, tenta com service role
     if (profileError) {
@@ -55,7 +55,7 @@ export default defineEventHandler(async (event) => {
         .from('profiles')
         .select('role')
         .eq('user_id', user.id)
-        .single()
+        .maybeSingle()
 
       if (serviceError) {
         console.error('[API perfil/me] Erro ao buscar role com service role:', serviceError)
