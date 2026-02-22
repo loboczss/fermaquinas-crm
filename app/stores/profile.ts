@@ -75,7 +75,7 @@ export const useProfileStore = defineStore('profile', {
     /**
      * Atualiza os dados do perfil via API (PUT)
      */
-    async updateProfile(payload: { full_name?: string; phone?: string }) {
+    async updateProfile(payload: { full_name?: string; phone?: string; avatar_url?: string }) {
       this.loading = true
       this.error = null
 
@@ -87,8 +87,9 @@ export const useProfileStore = defineStore('profile', {
 
         if (data && this.profile) {
           // Atualiza o estado local com os dados retornados do servidor
-          this.profile.full_name = data.user.full_name || this.profile.full_name
-          this.profile.phone = data.user.phone || this.profile.phone
+          if (data.user.full_name !== undefined) this.profile.full_name = data.user.full_name
+          if (data.user.phone !== undefined) this.profile.phone = data.user.phone
+          if (data.user.avatar_url !== undefined) this.profile.avatar_url = data.user.avatar_url
         }
         return { success: true }
       } catch (err: any) {

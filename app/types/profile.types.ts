@@ -12,4 +12,5 @@ export interface UserProfile {
   phone: string | null
   phone_verified: boolean
   role: 'master' | 'vendedor' | null
+  avatar_url?: string | null
 }

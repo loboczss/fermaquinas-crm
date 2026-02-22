@@ -40,10 +40,10 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Buscar role do perfil na tabela profiles (tenta com client primeiro, depois service role)
+    // Buscar role e avatar_url do perfil na tabela profiles (tenta com client primeiro, depois service role)
     let { data: profileData, error: profileError } = await client
       .from('profiles')
-      .select('role')
+      .select('role, avatar_url')
       .eq('user_id', user.id)
       .maybeSingle()
 
@@ -53,7 +53,7 @@ export default defineEventHandler(async (event) => {
       
       const { data: serviceProfile, error: serviceError } = await serviceRole
         .from('profiles')
-        .select('role')
+        .select('role, avatar_url')
         .eq('user_id', user.id)
         .maybeSingle()
 
@@ -76,6 +76,7 @@ export default defineEventHandler(async (event) => {
       phone: user.user_metadata?.phone || null,
       phone_verified: false,
       role: profileData?.role || 'vendedor',
+      avatar_url: profileData?.avatar_url || null,
     }
   } catch (error: any) {
     // Se já for um erro HTTP, re-lança
