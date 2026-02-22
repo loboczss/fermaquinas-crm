@@ -21,6 +21,8 @@ export default defineEventHandler(async (event) => {
       return { success: false, message: 'Não autenticado' }
     }
 
+    console.log('[API perfil/initialize] Inicializando perfil para user_id:', user.id)
+
     // Verifica se o perfil já existe
     const { data: existingProfile, error: checkError } = await serviceRole
       .from('profiles')

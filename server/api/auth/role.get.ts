@@ -23,6 +23,8 @@ export default defineEventHandler(async (event) => {
       return { role: 'vendedor', userId: null }
     }
 
+    console.log('[API auth/role] Consultando role para user_id:', user.id)
+
     // Tenta buscar o role com o client autenticado
     let { data: profile, error: profileError } = await client
       .from('profiles')

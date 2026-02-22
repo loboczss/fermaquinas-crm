@@ -28,6 +28,7 @@ export const useAuthStore = defineStore('auth', {
     /**
      * Busca o role do usuário autenticado via API.
      * Deve ser chamada logo após o login / montagem do layout autenticado.
+     * Só faz requisição se houver userId.
      */
     async fetchUserRole() {
       if (this.userRole) return // Já carregado, evita re-fetch
@@ -37,8 +38,14 @@ export const useAuthStore = defineStore('auth', {
 
       try {
         const data = await $fetch<IUserRoleResponse>('/api/auth/role')
-        this.userRole = data.role as UserRole
-        this.userId = data.userId
+        // Só atualiza se realmente recebeu um userId (significa que tem sessão)
+        if (data.userId) {
+          this.userRole = data.role as UserRole
+          this.userId = data.userId
+        } else {
+          // Sem sessão, não persiste o vendedor como role
+          this.userRole = 'vendedor'
+        }
       } catch (err: any) {
         console.error('[AuthStore] Erro ao buscar role:', err)
         this.error = err.message || 'Erro ao buscar cargo do usuário'
