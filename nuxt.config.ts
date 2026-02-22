@@ -19,5 +19,11 @@ export default defineNuxtConfig({
       callback: '/confirm',
       exclude: ['/esquecisenha', '/redefinirsenha']
     }
+  },
+  runtimeConfig: {
+    // Configurações privadas do servidor (apenas backend)
+    dropboxClientId: process.env.DROPBOX_CLIENT_ID || '',
+    dropboxClientSecret: process.env.DROPBOX_CLIENT_SECRET || '',
+    dropboxRefreshToken: process.env.DROPBOX_REFRESH_TOKEN || '',
   }
 })
