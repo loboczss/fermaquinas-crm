@@ -13,16 +13,15 @@
     <!-- Content -->
     <div class="relative z-10 max-w-lg text-center text-white space-y-8">
       <div class="space-y-4">
-        <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-white/10 backdrop-blur-md mb-4 shadow-2xl border border-white/20">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-primary-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
-          </svg>
+
+        <div class="flex justify-center mb-6">
+          <img src="/logo.png" alt="Fermaquinas" class="h-24 w-auto" />
         </div>
         <h1 class="text-4xl lg:text-5xl font-bold font-sans tracking-tight">
-          Centralize seu atendimento com <span class="text-primary-300">ZapMulti</span>
+          <span class="text-primary-300">Fermaquinas</span> Materiais para Construção
         </h1>
         <p class="text-lg text-primary-100/80">
-          Gerencie múltiplas conversas do WhatsApp em um único lugar, aumente a produtividade da sua equipe e ofereça um suporte impecável.
+          Sistema completo de CRM para gestão de clientes, vendas e relacionamento. Aumente a produtividade da sua equipe e ofereça um atendimento impecável.
         </p>
       </div>
 

@@ -60,13 +60,16 @@ const handleRegister = async () => {
         <ThemeToggle />
       </div>
 
-      <!-- Header -->
-      <div class="mb-10 mt-12 lg:mt-0">
+      <!-- Logo e Header -->
+      <div class="mb-10 mt-12 lg:mt-0 text-center">
+        <div class="flex justify-center mb-6">
+          <img src="/logo.png" alt="Fermaquinas" class="h-20 w-auto" />
+        </div>
         <h2 class="text-3xl font-bold text-secondary-900 dark:text-dark-text mb-2 transition-colors duration-300">
-          Bem-vindo
+          Fermaquinas Materiais para Construção
         </h2>
         <p class="text-secondary-500 dark:text-secondary-400 transition-colors duration-300">
-          Gerencie seus atendimentos de forma inteligente.
+          CRM - Sistema de Gestão de Relacionamento
         </p>
       </div>
 

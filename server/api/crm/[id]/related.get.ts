@@ -3,7 +3,7 @@ import { serverSupabaseClient } from '#supabase/server'
 /**
  * GET /api/crm/:id/related
  *
- * Retorna mensagens e vendas de um cliente específico (por contato_id).
+ * Retorna mensagens e vendas de um cliente especifico (por contato_id).
  * Query param: contato_id
  */
 export default defineEventHandler(async (event) => {
@@ -11,14 +11,14 @@ export default defineEventHandler(async (event) => {
 
   const { data: { user }, error: sessionError } = await client.auth.getUser()
   if (sessionError || !user?.id) {
-    throw createError({ statusCode: 401, message: 'Usuário não autenticado' })
+    throw createError({ statusCode: 401, message: 'Usuario nao autenticado' })
   }
 
   const id = getRouterParam(event, 'id')
   const { contato_id } = getQuery(event) as { contato_id?: string }
 
   if (!contato_id) {
-    throw createError({ statusCode: 400, message: 'contato_id é obrigatório' })
+    throw createError({ statusCode: 400, message: 'contato_id e obrigatorio' })
   }
 
   // Busca mensagens e vendas em paralelo

@@ -13,16 +13,28 @@ export default {
     extend: {
       colors: {
         primary: {
-          50: '#e6fdf5',
-          100: '#ccfbeb',
-          200: '#99f7d7',
-          300: '#66f3c3',
-          400: '#33efaf',
-          500: '#00DC81', // Brand Color
-          600: '#00b067',
-          700: '#00844d',
-          800: '#005833',
-          900: '#002c1a'
+          50: '#fffaeb',
+          100: '#fff4cc',
+          200: '#ffeb99',
+          300: '#ffe066',
+          400: '#ffd633',
+          500: '#FFCC00', // Amarelo Ouro - Brand Color
+          600: '#cca300',
+          700: '#997a00',
+          800: '#665200',
+          900: '#332900'
+        },
+        accent: {
+          50: '#fef3ef',
+          100: '#fde4d9',
+          200: '#fbcab3',
+          300: '#f9af8d',
+          400: '#e68860',
+          500: '#D26034', // Laranja Tijolo - Accent Color
+          600: '#b94d29',
+          700: '#8b3a1f',
+          800: '#5d2715',
+          900: '#2e130a'
         },
         secondary: {
           50: '#f8fafc',
