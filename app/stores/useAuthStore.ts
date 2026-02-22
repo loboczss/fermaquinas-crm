@@ -55,11 +55,14 @@ export const useAuthStore = defineStore('auth', {
      */
     async initializeProfile() {
       try {
-        await $fetch('/api/perfil/initialize', {
+        const response = await $fetch('/api/perfil/initialize', {
           method: 'POST'
         })
+        console.log('[AuthStore] Perfil inicializado:', response)
+        return response
       } catch (err: any) {
-        // Silenciosamente falha se não autenticado - é esperado no primeiro acesso
+        console.error('[AuthStore] Erro ao inicializar perfil:', err)
+        // Não é crítico, o usuário continuará podendo usar a app
       }
     },
 
