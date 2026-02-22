@@ -35,14 +35,7 @@ const toggleMobileMenu = () => {
 
         <!-- Logo -->
         <NuxtLink to="/" class="flex items-center gap-2.5 group flex-shrink-0" @click="isMobileMenuOpen = false">
-          <div class="w-9 h-9 bg-primary-500 rounded-lg flex items-center justify-center text-white shadow-sm transition-transform duration-200 group-hover:scale-[1.03]">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 000 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
-            </svg>
-          </div>
-          <span class="text-xl font-bold font-sans text-secondary-900 dark:text-dark-text tracking-tight hidden sm:block">
-            ZapMulti
-          </span>
+          <img src="/logo.png" alt="Fermaquinas" class="h-9 w-auto transition-transform duration-200 group-hover:scale-[1.03]" />
         </NuxtLink>
       </div>
       
