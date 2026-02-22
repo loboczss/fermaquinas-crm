@@ -1,17 +1,28 @@
 <script setup lang="ts">
 import BaseDropdown from '~/components/BaseDropdown.vue'
 import { useAuth } from '~/composables/useAuth'
+import { useAuthStore } from '~/stores/useAuthStore'
 import { computed } from 'vue'
 
 const { logout } = useAuth()
 const user = useSupabaseUser()
+const authStore = useAuthStore()
 
 // Metadata extraction
 const userName = computed(() => user.value?.user_metadata?.full_name || 'Usuário')
 const userEmail = computed(() => user.value?.email || '')
 const userInitials = computed(() => userName.value.charAt(0).toUpperCase())
 
+// Role badge
+const roleBadgeLabel = computed(() => authStore.isMaster ? 'MASTER' : 'VENDEDOR')
+const roleBadgeClasses = computed(() =>
+  authStore.isMaster
+    ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
+    : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'
+)
+
 const handleLogout = async () => {
+  authStore.clearAuth()
   await logout()
   navigateTo('/login')
 }
@@ -48,7 +59,16 @@ const dropdownItems = [
       >
         <!-- User Info (hidden on small screens) -->
         <div class="hidden md:flex flex-col text-right min-w-[120px]">
-          <span class="text-sm font-semibold text-secondary-900 dark:text-dark-text truncate">{{ userName }}</span>
+          <div class="flex items-center justify-end gap-1.5">
+            <span class="text-sm font-semibold text-secondary-900 dark:text-dark-text truncate">{{ userName }}</span>
+            <span
+              v-if="authStore.isRoleLoaded"
+              class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold uppercase leading-none tracking-wider"
+              :class="roleBadgeClasses"
+            >
+              {{ roleBadgeLabel }}
+            </span>
+          </div>
           <span class="text-xs text-secondary-500 dark:text-secondary-400 truncate">{{ userEmail }}</span>
         </div>
         

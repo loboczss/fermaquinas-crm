@@ -58,15 +58,11 @@ watch(clientSearchTerm, (newTerm) => {
   clearTimeout(searchTimeout)
   searchTimeout = setTimeout(async () => {
     try {
-      const client = useSupabaseClient()
-      const { data, error } = await client
-        .from('crm_fermaquinas')
-        .select('id, contato_id, nome, nome_social')
-        .is('deleted_at', null)
-        .or(`nome.ilike.%${term}%,nome_social.ilike.%${term}%,contato_id.ilike.%${term}%`)
-        .limit(10)
+      const data = await $fetch<any[]>('/api/crm/search', {
+        query: { q: term, limit: 10 },
+      })
       
-      if (!error && data) {
+      if (data) {
         searchResults.value = data
       }
     } catch (e) {

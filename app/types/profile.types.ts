@@ -11,4 +11,5 @@ export interface UserProfile {
   email_verified: boolean
   phone: string | null
   phone_verified: boolean
+  role: 'master' | 'vendedor' | null
 }

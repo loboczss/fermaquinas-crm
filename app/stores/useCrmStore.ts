@@ -1,29 +1,13 @@
 import { defineStore } from 'pinia'
-import { formatClientName } from '~/utils/formatters'
+import type { ICliente, IPaginatedResponse } from '~/types/api.types'
 
-export interface CrmCliente {
-    id: number
-    created_at: string
-    contato_id: string
-    nome: string | null
-    nome_social: string | null
-    cidade: string | null
-    email: string | null
-    data_nascimento: string | null
-    sentimento: string | null
-    urgencia: string | null
-    resumo_perfil: string | null
-    interesses: string | null
-    objeccoes: string | null
-    fase_obra: string | null
-    deleted_at: string | null
-    deleted_by: string | null
-}
+// Re-exporta ICliente como CrmCliente para retrocompatibilidade com componentes existentes
+export type CrmCliente = ICliente
 
 export const useCrmStore = defineStore('crmStore', {
     state: () => ({
-        clientes: [] as CrmCliente[],
-        clienteSelecionado: null as CrmCliente | null,
+        clientes: [] as ICliente[],
+        clienteSelecionado: null as ICliente | null,
         clienteVendas: [] as any[],
         clienteMensagens: [] as any[],
         isEditModalOpen: false,
@@ -37,68 +21,41 @@ export const useCrmStore = defineStore('crmStore', {
     }),
     actions: {
         async fetchClientes() {
-            const client = useSupabaseClient()
             this.isLoading = true
             this.error = null
 
-            const from = (this.currentPage - 1) * this.itemsPerPage
-            const to = from + this.itemsPerPage - 1
-
             try {
-                let query = client
-                    .from('crm_fermaquinas')
-                    .select('*', { count: 'exact' })
-                    .is('deleted_at', null)
+                const response = await $fetch<IPaginatedResponse<ICliente>>('/api/crm', {
+                    query: {
+                        page: this.currentPage,
+                        limit: this.itemsPerPage,
+                        search: this.searchQuery,
+                    },
+                })
 
-                if (this.searchQuery && this.searchQuery.trim() !== '') {
-                    const q = `%${this.searchQuery.trim()}%`
-                    query = query.or(`nome.ilike.${q},nome_social.ilike.${q},contato_id.ilike.${q}`)
-                }
-
-                const { data, error, count } = await query
-                    .order('created_at', { ascending: false })
-                    .range(from, to)
-
-                if (error) throw error
-                this.clientes = (data as CrmCliente[]) || []
-                if (count !== null) {
-                    this.totalItems = count
-                }
+                this.clientes = response.data
+                this.totalItems = response.total
             } catch (err: any) {
                 console.error('Erro ao buscar clientes:', err)
-                this.error = err.message
+                this.error = err.data?.message || err.message || 'Erro ao buscar clientes'
             } finally {
                 this.isLoading = false
             }
         },
-        async adicionarCliente(dados: Partial<CrmCliente>) {
-            const client = useSupabaseClient()
+
+        async adicionarCliente(dados: Partial<ICliente>) {
             const { useToast } = await import('~/composables/useToast')
             const toast = useToast()
 
-            // Define defaults
-            const payload = { ...dados }
-            if (!payload.sentimento) payload.sentimento = 'Neutro'
-            if (!payload.urgencia) payload.urgencia = 'Baixa'
-            if (!payload.fase_obra) payload.fase_obra = 'Indefinido'
-
             try {
-                const { data, error } = await client
-                    .from('crm_fermaquinas')
-                    .insert(payload)
-                    .select()
-                    .single()
-
-                if (error) {
-                    if (error.code === '23505') {
-                        throw new Error('UNIQUE_CONSTRAINT')
-                    }
-                    throw error
-                }
+                const data = await $fetch<ICliente>('/api/crm', {
+                    method: 'POST',
+                    body: dados,
+                })
 
                 if (data) {
                     if (this.currentPage === 1) {
-                        this.clientes.unshift(data as CrmCliente)
+                        this.clientes.unshift(data)
                         if (this.clientes.length > this.itemsPerPage) {
                             this.clientes.pop()
                         }
@@ -110,31 +67,23 @@ export const useCrmStore = defineStore('crmStore', {
                 toast.success('Cliente cadastrado com sucesso!')
             } catch (err: any) {
                 console.error('Erro ao cadastrar cliente:', err)
-                if (err.message === 'UNIQUE_CONSTRAINT') {
+                if (err.data?.message === 'UNIQUE_CONSTRAINT' || err.statusCode === 409) {
                     toast.error('Este número de contato já está cadastrado no CRM.')
                 } else {
                     toast.error('Erro ao salvar o novo cliente.')
                 }
             }
         },
-        async atualizarCliente(id: number, dados: Partial<CrmCliente>) {
-            const client = useSupabaseClient()
-            const { useToast } = await import('~/composables/useToast') // dynamic import
+
+        async atualizarCliente(id: number, dados: Partial<ICliente>) {
+            const { useToast } = await import('~/composables/useToast')
             const toast = useToast()
 
-            // Segurança: contato_id NUNCA deve ser atualizado
-            const payload = { ...dados }
-            delete payload.contato_id
-
             try {
-                const { data, error } = await client
-                    .from('crm_fermaquinas')
-                    .update(payload)
-                    .eq('id', id)
-                    .select()
-                    .single()
-
-                if (error) throw error
+                const data = await $fetch<ICliente>(`/api/crm/${id}`, {
+                    method: 'PUT',
+                    body: dados,
+                })
 
                 // Atualiza localmente sem precisar de re-fetch
                 const index = this.clientes.findIndex(c => c.id === id)
@@ -154,22 +103,13 @@ export const useCrmStore = defineStore('crmStore', {
                 toast.error('Erro ao salvar as alterações.')
             }
         },
+
         async deletarCliente(id: number) {
-            const client = useSupabaseClient()
-            const user = useSupabaseUser()
             const { useToast } = await import('~/composables/useToast')
             const toast = useToast()
 
             try {
-                const { error } = await client
-                    .from('crm_fermaquinas')
-                    .update({
-                        deleted_at: new Date().toISOString(),
-                        deleted_by: user.value?.id || null
-                    })
-                    .eq('id', id)
-
-                if (error) throw error
+                await $fetch(`/api/crm/${id}`, { method: 'DELETE' })
 
                 // Remove localmente para refletir na UI rápido
                 this.clientes = this.clientes.filter(c => c.id !== id)
@@ -185,6 +125,7 @@ export const useCrmStore = defineStore('crmStore', {
                 toast.error('Não foi possível remover o cliente.')
             }
         },
+
         nextPage() {
             if (this.currentPage * this.itemsPerPage < this.totalItems) {
                 this.currentPage++
@@ -201,35 +142,24 @@ export const useCrmStore = defineStore('crmStore', {
             this.currentPage = page
             this.fetchClientes()
         },
-        async selecionarCliente(cliente: CrmCliente) {
+
+        async selecionarCliente(cliente: ICliente) {
             this.clienteSelecionado = cliente
             this.clienteVendas = []
             this.clienteMensagens = []
 
-            const client = useSupabaseClient()
             try {
-                // Fetch Mensagens
-                const { data: mensagens } = await client
-                    .from('historico_msg_fermaquinas')
-                    .select('*')
-                    .eq('contato_id', cliente.contato_id)
-                    .order('created_at', { ascending: false })
-                    .limit(20)
+                const related = await $fetch<{ mensagens: any[]; vendas: any[] }>(`/api/crm/${cliente.id}/related`, {
+                    query: { contato_id: cliente.contato_id },
+                })
 
-                // Fetch Vendas
-                const { data: vendas } = await client
-                    .from('historico_vendas_fermaquinas')
-                    .select('*')
-                    .eq('contato_id', cliente.contato_id)
-                    .is('deleted_at', null)
-                    .order('created_at', { ascending: false })
-
-                if (mensagens) this.clienteMensagens = mensagens
-                if (vendas) this.clienteVendas = vendas
+                this.clienteMensagens = related.mensagens || []
+                this.clienteVendas = related.vendas || []
             } catch (error) {
                 console.error('Erro ao buscar dados relacionados do cliente:', error)
             }
         },
+
         fecharDetalhes() {
             this.clienteSelecionado = null
         },

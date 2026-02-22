@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { useVendasStore } from '~/stores/useVendasStore'
+import { useAuthStore } from '~/stores/useAuthStore'
 import { formatClientName } from '~/utils/formatters'
 import { format } from 'date-fns'
 
 const store = useVendasStore()
+const authStore = useAuthStore()
 
 const formatCurrency = (value: number | null) => {
   if (!value) return 'R$ 0,00'
@@ -26,7 +28,7 @@ const formatDate = (dateString: string) => {
               <tr>
                 <th scope="col" class="py-4 pl-4 pr-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400 sm:pl-6">Data/Hora</th>
                 <th scope="col" class="px-3 py-4 text-left text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Cliente</th>
-                <th scope="col" class="px-3 py-4 text-left text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Vendedor</th>
+                <th v-if="authStore.isMaster" scope="col" class="px-3 py-4 text-left text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Vendedor</th>
                 <th scope="col" class="px-3 py-4 text-left text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Produtos</th>
                 <th scope="col" class="px-3 py-4 text-left text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Valor</th>
               </tr>
@@ -37,7 +39,7 @@ const formatDate = (dateString: string) => {
                 <tr v-for="i in store.itemsPerPage" :key="'skeleton-'+i" class="animate-pulse bg-gray-50/50 dark:bg-gray-800/30">
                   <td class="whitespace-nowrap py-5 pl-4 pr-3 sm:pl-6"><div class="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded"></div></td>
                   <td class="whitespace-nowrap px-3 py-5"><div class="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded"></div></td>
-                  <td class="whitespace-nowrap px-3 py-5"><div class="h-4 w-28 bg-gray-200 dark:bg-gray-700 rounded"></div></td>
+                  <td v-if="authStore.isMaster" class="whitespace-nowrap px-3 py-5"><div class="h-4 w-28 bg-gray-200 dark:bg-gray-700 rounded"></div></td>
                   <td class="whitespace-nowrap px-3 py-5"><div class="h-4 w-40 bg-gray-200 dark:bg-gray-700 rounded"></div></td>
                   <td class="whitespace-nowrap px-3 py-5"><div class="h-4 w-16 bg-gray-200 dark:bg-gray-700 rounded"></div></td>
                 </tr>
@@ -45,7 +47,7 @@ const formatDate = (dateString: string) => {
               
               <!-- Empty State -->
               <tr v-else-if="store.vendas.length === 0">
-                <td colspan="5" class="py-16 text-center text-gray-500 dark:text-gray-400">
+                <td :colspan="authStore.isMaster ? 5 : 4" class="py-16 text-center text-gray-500 dark:text-gray-400">
                   <svg class="mx-auto h-12 w-12 text-gray-300 dark:text-gray-600 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                   </svg>
@@ -73,7 +75,7 @@ const formatDate = (dateString: string) => {
                     <span class="text-xs text-gray-500 dark:text-gray-400">{{ venda.contato_id }}</span>
                   </div>
                 </td>
-                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-600 dark:text-gray-300">
+                <td v-if="authStore.isMaster" class="whitespace-nowrap px-3 py-4 text-sm text-gray-600 dark:text-gray-300">
                   <div class="flex flex-col">
                     <span>{{ venda.vendedor || '-' }}</span>
                     <span v-if="venda.vendedor_id" class="text-xs text-gray-400">ID Autenticado</span>

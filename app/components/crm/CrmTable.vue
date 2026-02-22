@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { useCrmStore } from '~/stores/useCrmStore'
+import { useAuthStore } from '~/stores/useAuthStore'
 import { formatClientName } from '~/utils/formatters'
 import BadgeUrgency from './BadgeUrgency.vue'
 import BadgeSentiment from './BadgeSentiment.vue'
 
 const store = useCrmStore()
+const authStore = useAuthStore()
 
 const handleRowClick = (cliente: any) => {
   store.selecionarCliente(cliente)

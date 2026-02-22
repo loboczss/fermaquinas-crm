@@ -1,31 +1,11 @@
 ﻿import { defineStore } from 'pinia'
 import { format, subDays, eachDayOfInterval, parseISO } from 'date-fns'
-import { useVendasStore } from '~/stores/useVendasStore'
+import type { IDashboardMetrics, IContatoResumo, IMensagem, IMetricaRow, IVendaPeriodo } from '~/types/api.types'
 
-// ─── Types ───────────────────────────────────────────────────
-export interface Mensagem {
-  id: number
-  created_at: string
-  mensagem: string | null
-  contato_id: string
-  contact_name: string | null
-  sender_type: string | null
-  sender_name: string | null
-}
-
-export interface ContatoResumo {
-  contato_id: string
-  contact_name: string | null
-  ultima_mensagem: string | null
-  ultima_data: string
-}
-
-export interface MetricaRow {
-  data_atendimento: string
-  novos_clientes: number
-  clientes_recorrentes: number
-  total_clientes: number
-}
+// Re-exporta tipos para retrocompatibilidade
+export type Mensagem = IMensagem
+export type ContatoResumo = IContatoResumo
+export type MetricaRow = IMetricaRow
 
 // ─── Store ───────────────────────────────────────────────────
 export const useChatDashboard = defineStore('chatDashboard', {
@@ -33,12 +13,12 @@ export const useChatDashboard = defineStore('chatDashboard', {
     filtroInicio: format(subDays(new Date(), 7), 'yyyy-MM-dd'),
     filtroFim: format(new Date(), 'yyyy-MM-dd'),
     valorTotalVendas: 0,
-    vendasPeriodo: [] as { created_at: string; valor_venda: number | null }[],
+    vendasPeriodo: [] as IVendaPeriodo[],
 
-    metricas: [] as MetricaRow[],
-    contatos: [] as ContatoResumo[],
+    metricas: [] as IMetricaRow[],
+    contatos: [] as IContatoResumo[],
     contatoSelecionado: null as string | null,
-    mensagensAtuais: [] as Mensagem[],
+    mensagensAtuais: [] as IMensagem[],
 
     loadingMetricas: false,
     loadingContatos: false,
@@ -154,28 +134,20 @@ export const useChatDashboard = defineStore('chatDashboard', {
   // ─── Actions ─────────────────────────────────────────────
   actions: {
     async fetchMetricas() {
-      const client = useSupabaseClient()
       this.loadingMetricas = true
       this.error = null
 
       try {
-        const { data, error } = await client.rpc(
-          'obter_dashboard_metricas',
-          { data_inicio: this.filtroInicio, data_fim: this.filtroFim },
-        )
-        if (error) throw error
+        const data = await $fetch<IDashboardMetrics>('/api/dashboard/metrics', {
+          query: { data_inicio: this.filtroInicio, data_fim: this.filtroFim },
+        })
 
-        // O Supabase agora retorna um objeto com { kpis, grafico }
-        if (data) {
-          const res = data as any
-          this.kpisGlobais = res.kpis || { total_clientes: 0, total_novos: 0, total_recorrentes: 0 }
-          this.metricas = res.grafico || []
-        } else {
-          this.kpisGlobais = { total_clientes: 0, total_novos: 0, total_recorrentes: 0 }
-          this.metricas = []
-        }
+        this.kpisGlobais = data.kpis || { total_clientes: 0, total_novos: 0, total_recorrentes: 0 }
+        this.metricas = data.grafico || []
+        this.vendasPeriodo = data.vendasPeriodo || []
+        this.valorTotalVendas = data.valorTotalVendas || 0
       } catch (err: any) {
-        this.error = err.message ?? 'Erro ao buscar métricas'
+        this.error = err.data?.message || err.message || 'Erro ao buscar métricas'
         console.error('[chatDashboard] fetchMetricas:', err)
       } finally {
         this.loadingMetricas = false
@@ -183,37 +155,17 @@ export const useChatDashboard = defineStore('chatDashboard', {
     },
 
     async fetchContatosUnicos() {
-      const client = useSupabaseClient()
       this.loadingContatos = true
       this.error = null
 
       try {
-        // Busca todos os registros no período, depois agrupa no client
-        const { data, error } = await client
-          .from('historico_msg_fermaquinas')
-          .select('contato_id, contact_name, mensagem, created_at')
-          .gte('created_at', `${this.filtroInicio}T00:00:00`)
-          .lte('created_at', `${this.filtroFim}T23:59:59`)
-          .order('created_at', { ascending: false })
+        const data = await $fetch<IContatoResumo[]>('/api/dashboard/contatos', {
+          query: { data_inicio: this.filtroInicio, data_fim: this.filtroFim },
+        })
 
-        if (error) throw error
-
-        // Agrupa por contato_id e pega a última mensagem
-        const map = new Map<string, ContatoResumo>()
-        for (const row of data ?? []) {
-          if (!map.has(row.contato_id)) {
-            map.set(row.contato_id, {
-              contato_id: row.contato_id,
-              contact_name: row.contact_name,
-              ultima_mensagem: row.mensagem,
-              ultima_data: row.created_at,
-            })
-          }
-        }
-
-        this.contatos = Array.from(map.values())
+        this.contatos = data || []
       } catch (err: any) {
-        this.error = err.message ?? 'Erro ao buscar contatos'
+        this.error = err.data?.message || err.message || 'Erro ao buscar contatos'
         console.error('[chatDashboard] fetchContatosUnicos:', err)
       } finally {
         this.loadingContatos = false
@@ -221,51 +173,25 @@ export const useChatDashboard = defineStore('chatDashboard', {
     },
 
     async selecionarContato(contato_id: string) {
-      const client = useSupabaseClient()
       this.contatoSelecionado = contato_id
       this.loadingMensagens = true
       this.error = null
 
       try {
-        const { data, error } = await client
-          .from('historico_msg_fermaquinas')
-          .select('*')
-          .eq('contato_id', contato_id)
-          .order('created_at', { ascending: true })
-
-        if (error) throw error
-        this.mensagensAtuais = (data as Mensagem[]) ?? []
+        const data = await $fetch<IMensagem[]>('/api/dashboard/mensagens', {
+          query: { contato_id },
+        })
+        this.mensagensAtuais = data || []
       } catch (err: any) {
-        this.error = err.message ?? 'Erro ao buscar mensagens'
+        this.error = err.data?.message || err.message || 'Erro ao buscar mensagens'
         console.error('[chatDashboard] selecionarContato:', err)
       } finally {
         this.loadingMensagens = false
       }
     },
 
-    async fetchValorTotalVendas() {
-      const client = useSupabaseClient()
-      try {
-        const { data, error } = await client
-          .from('historico_vendas_fermaquinas')
-          .select('valor_venda, created_at')
-          .gte('created_at', `${this.filtroInicio}T00:00:00`)
-          .lte('created_at', `${this.filtroFim}T23:59:59`)
-          .is('deleted_at', null)
-
-        if (error) throw error
-
-        this.valorTotalVendas = data.reduce((sum, v) => sum + (Number(v.valor_venda) || 0), 0)
-        this.vendasPeriodo = data || []
-      } catch (err: any) {
-        console.error('[chatDashboard] fetchValorTotalVendas:', err)
-        this.valorTotalVendas = 0
-        this.vendasPeriodo = []
-      }
-    },
-
     async aplicarFiltro() {
-      await Promise.all([this.fetchMetricas(), this.fetchContatosUnicos(), this.fetchValorTotalVendas()])
+      await Promise.all([this.fetchMetricas(), this.fetchContatosUnicos()])
       this.contatoSelecionado = null
       this.mensagensAtuais = []
     },

@@ -1,4 +1,4 @@
-import { serverSupabaseClient } from '#supabase/server'
+import { serverSupabaseClient, serverSupabaseServiceRole } from '#supabase/server'
 
 /**
  * Endpoint: GET /api/perfil/me
@@ -17,6 +17,7 @@ export default defineEventHandler(async (event) => {
   try {
     // Usar o client do Supabase para obter o usuário da sessão
     const client = await serverSupabaseClient(event)
+    const serviceRole = serverSupabaseServiceRole(event)
     
     // Obter o usuário da sessão atual
     const { data: { user }, error: sessionError } = await client.auth.getUser()
@@ -39,6 +40,31 @@ export default defineEventHandler(async (event) => {
       })
     }
 
+    // Buscar role do perfil na tabela profiles (tenta com client primeiro, depois service role)
+    let { data: profileData, error: profileError } = await client
+      .from('profiles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single()
+
+    // Se falhar com client, tenta com service role
+    if (profileError) {
+      console.warn('[API perfil/me] Erro ao buscar role com client:', profileError)
+      
+      const { data: serviceProfile, error: serviceError } = await serviceRole
+        .from('profiles')
+        .select('role')
+        .eq('user_id', user.id)
+        .single()
+
+      if (serviceError) {
+        console.error('[API perfil/me] Erro ao buscar role com service role:', serviceError)
+        profileData = null
+      } else {
+        profileData = serviceProfile
+      }
+    }
+
     // Retornar dados do perfil
     return {
       id: user.id,
@@ -48,7 +74,8 @@ export default defineEventHandler(async (event) => {
       updated_at: user.updated_at,
       email_verified: user.user_metadata?.email_verified || false,
       phone: user.user_metadata?.phone || null,
-      phone_verified: false
+      phone_verified: false,
+      role: profileData?.role || 'vendedor',
     }
   } catch (error: any) {
     // Se já for um erro HTTP, re-lança

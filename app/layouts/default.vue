@@ -1,5 +1,18 @@
 <script setup lang="ts">
 import AppHeader from '~/components/AppHeader.vue'
+import { useAuthStore } from '~/stores/useAuthStore'
+
+const user = useSupabaseUser()
+const authStore = useAuthStore()
+
+// Buscar role do usuário quando ele estiver autenticado
+watch(user, async (newUser) => {
+  if (newUser) {
+    await authStore.fetchUserRole()
+  } else {
+    authStore.clearAuth()
+  }
+}, { immediate: true })
 </script>
 
 <template>

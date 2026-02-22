@@ -1,26 +1,12 @@
 import { defineStore } from 'pinia'
+import type { IVenda, IPaginatedResponse } from '~/types/api.types'
 
-export interface Venda {
-    id: number
-    created_at: string
-    id_mensagem_venda: number | null
-    contato_id: string
-    valor_venda: number | null
-    contact_name: string | null
-    vendedor: string | null
-    produtos: string | null
-    deleted_at: string | null
-    deleted_by: string | null
-    vendedor_id: string | null
-    cliente?: {
-        nome: string | null
-        nome_social: string | null
-    }
-}
+// Re-exporta para retrocompatibilidade
+export type Venda = IVenda
 
 export const useVendasStore = defineStore('vendasStore', {
     state: () => ({
-        vendas: [] as Venda[],
+        vendas: [] as IVenda[],
         currentPage: 1,
         itemsPerPage: 15,
         totalItems: 0,
@@ -38,67 +24,47 @@ export const useVendasStore = defineStore('vendasStore', {
         },
 
         async fetchVendas() {
-            const client = useSupabaseClient()
             this.isLoading = true
             this.error = null
 
             try {
-                const from = (this.currentPage - 1) * this.itemsPerPage
-                const to = from + this.itemsPerPage - 1
+                const response = await $fetch<IPaginatedResponse<IVenda>>('/api/vendas', {
+                    query: {
+                        page: this.currentPage,
+                        limit: this.itemsPerPage,
+                    },
+                })
 
-                let query = client
-                    .from('historico_vendas_fermaquinas')
-                    .select('*', { count: 'exact' })
-                    .is('deleted_at', null)
-
-                query = query.order('created_at', { ascending: false }).range(from, to)
-
-                const { data, count, error } = await query
-
-                if (error) throw error
-
-                this.vendas = (data as any) ?? []
-                this.totalItems = count ?? 0
+                this.vendas = response.data
+                this.totalItems = response.total
             } catch (err: any) {
-                this.error = err.message
+                this.error = err.data?.message || err.message || 'Erro ao buscar vendas'
                 console.error('Erro ao buscar vendas:', err)
             } finally {
                 this.isLoading = false
             }
         },
 
-        async criarVenda(dados: Partial<Venda>) {
-            const client = useSupabaseClient()
-            const user = useSupabaseUser()
+        async criarVenda(dados: Partial<IVenda>) {
             const toast = useToast()
 
             try {
-                const payload = {
-                    ...dados,
-                    vendedor_id: user.value?.id,
-                    vendedor: dados.vendedor || user.value?.user_metadata?.full_name || user.value?.email || 'Vendedor Desconhecido',
-                }
-
-                const { data, error } = await client
-                    .from('historico_vendas_fermaquinas')
-                    .insert(payload)
-                    .select('*')
-                    .single()
-
-                if (error) throw error
+                const data = await $fetch<IVenda>('/api/vendas', {
+                    method: 'POST',
+                    body: dados,
+                })
 
                 toast.success('Venda cadastrada com sucesso!')
 
                 // Se estiver na página 1, adiciona ao topo
                 if (this.currentPage === 1 && data) {
-                    this.vendas.unshift(data as any)
+                    this.vendas.unshift(data)
                     this.totalItems++
-                    // Remova o último se passar do limite da página para manter a consistência visual local
                     if (this.vendas.length > this.itemsPerPage) {
                         this.vendas.pop()
                     }
                 } else {
-                    this.fetchVendas() // Recarrega se estiver em outra página
+                    this.fetchVendas()
                 }
 
                 this.fecharCriacao()
