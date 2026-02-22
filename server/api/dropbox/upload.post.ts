@@ -164,8 +164,13 @@ export default defineEventHandler(async (event): Promise<UploadSuccessResponse> 
           }
         })
 
-        if (listLinksResponse.links && listLinksResponse.links.length > 0) {
-          sharedLink = listLinksResponse.links[0].url
+        if (listLinksResponse?.links && listLinksResponse.links.length > 0) {
+          const firstLink = listLinksResponse.links[0]
+          if (firstLink?.url) {
+            sharedLink = firstLink.url
+          } else {
+            throw new Error('URL do link não encontrada')
+          }
         } else {
           throw new Error('Link compartilhado não encontrado')
         }
@@ -192,8 +197,11 @@ export default defineEventHandler(async (event): Promise<UploadSuccessResponse> 
   // PASSO E: Converter para link direto (raw)
   // ============================================
   
-  // Substitui '?dl=0' por '?raw=1' para link direto de imagem
-  const directLink = sharedLink.replace('?dl=0', '?raw=1').replace('www.dropbox.com', 'dl.dropboxusercontent.com')
+  // Substitui '?dl=0' ou '&dl=0' por '?raw=1' para link direto de imagem
+  // O Dropbox pode retornar ?rlkey=...&dl=0, então usamos regex para capturar ambos
+  const directLink = sharedLink
+    .replace(/[?&]dl=0/g, '?raw=1')
+    .replace('www.dropbox.com', 'dl.dropboxusercontent.com')
 
   console.log('[Dropbox] Link direto gerado:', directLink)
 

@@ -2,16 +2,27 @@
 import BaseDropdown from '~/components/BaseDropdown.vue'
 import { useAuth } from '~/composables/useAuth'
 import { useAuthStore } from '~/stores/useAuthStore'
+import { useProfileStore } from '~/stores/profile'
 import { computed } from 'vue'
 
 const { logout } = useAuth()
 const user = useSupabaseUser()
 const authStore = useAuthStore()
+const profileStore = useProfileStore()
 
-// Metadata extraction
-const userName = computed(() => user.value?.user_metadata?.full_name || 'Usuário')
-const userEmail = computed(() => user.value?.email || '')
-const userInitials = computed(() => userName.value.charAt(0).toUpperCase())
+// Metadata extraction - use profileStore como source de verdade
+const userName = computed(() => profileStore.profile?.full_name || user.value?.user_metadata?.full_name || 'Usuário')
+const userEmail = computed(() => profileStore.profile?.email || user.value?.email || '')
+const userInitials = computed(() => {
+  const name = profileStore.profile?.full_name || user.value?.user_metadata?.full_name || 'U'
+  return name
+    .split(' ')
+    .map(n => n.charAt(0))
+    .slice(0, 2)
+    .join('')
+    .toUpperCase()
+})
+const userAvatar = computed(() => profileStore.profile?.avatar_url || null)
 
 // Role badge
 const roleBadgeLabel = computed(() => authStore.isMaster ? 'MASTER' : 'VENDEDOR')
@@ -74,7 +85,18 @@ const dropdownItems = [
         
         <!-- Avatar with green dot -->
         <div class="relative flex-shrink-0">
-          <div class="w-9 h-9 rounded-full bg-secondary-100 dark:bg-dark-bg flex items-center justify-center text-secondary-700 dark:text-secondary-200 text-sm font-bold ring-1 ring-secondary-200/70 dark:ring-dark-border/80">
+          <!-- Avatar Image if exists -->
+          <img
+            v-if="userAvatar"
+            :src="userAvatar"
+            :alt="userName"
+            class="w-9 h-9 rounded-full object-cover ring-1 ring-secondary-200/70 dark:ring-dark-border/80"
+          />
+          <!-- Avatar Initials as fallback -->
+          <div
+            v-else
+            class="w-9 h-9 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 dark:from-primary-500 dark:to-primary-700 flex items-center justify-center text-white text-xs font-bold ring-1 ring-secondary-200/70 dark:ring-dark-border/80"
+          >
             {{ userInitials }}
           </div>
           <!-- Online Indicator -->

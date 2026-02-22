@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import AppHeader from '~/components/AppHeader.vue'
 import { useAuthStore } from '~/stores/useAuthStore'
+import { useProfileStore } from '~/stores/profile'
 
 const user = useSupabaseUser()
 const authStore = useAuthStore()
+const profileStore = useProfileStore()
 
 // Buscar role do usuário quando ele estiver autenticado
 watch(user, async (newUser) => {
@@ -16,8 +18,16 @@ watch(user, async (newUser) => {
     }
     
     await authStore.fetchUserRole()
+    
+    // Carregar dados do perfil do usuário (incluindo avatar_url)
+    try {
+      await profileStore.fetchProfile()
+    } catch (err) {
+      console.error('Erro ao carregar perfil:', err)
+    }
   } else {
     authStore.clearAuth()
+    profileStore.clearProfile()
   }
 }, { immediate: true })
 </script>
