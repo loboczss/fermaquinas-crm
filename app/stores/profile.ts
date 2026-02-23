@@ -5,13 +5,15 @@ interface ProfileState {
   profile: UserProfile | null
   loading: boolean
   error: string | null
+  fetchPromise: Promise<void> | null
 }
 
 export const useProfileStore = defineStore('profile', {
   state: (): ProfileState => ({
     profile: null,
     loading: false,
-    error: null
+    error: null,
+    fetchPromise: null
   }),
 
   getters: {
@@ -50,31 +52,41 @@ export const useProfileStore = defineStore('profile', {
      * Busca os dados do perfil do usuário autenticado via API
      */
     async fetchProfile() {
-      this.loading = true
-      this.error = null
-
-      try {
-        const data = await $fetch<UserProfile>('/api/perfil/me', {
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        })
-
-        console.log('[ProfileStore] Resposta bruta da API /api/perfil/me:', JSON.stringify(data))
-
-        if (data) {
-          this.profile = data
-          console.log('[ProfileStore] Perfil setado no store:', JSON.stringify(this.profile))
-        } else {
-          console.warn('[ProfileStore] API retornou dados vazios ou null, mantendo o estado atual.')
-        }
-      } catch (err: any) {
-        this.error = err.message || 'Erro ao buscar perfil do usuário'
-        console.error('[ProfileStore] Erro ao buscar perfil:', err)
-      } finally {
-        this.loading = false
+      // Se já houver uma busca em andamento, aguarda ela terminar para não duplicar chamadas
+      if (this.fetchPromise) {
+        return this.fetchPromise
       }
+
+      this.fetchPromise = (async () => {
+        this.loading = true
+        this.error = null
+
+        try {
+          const data = await $fetch<UserProfile>('/api/perfil/me', {
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          })
+
+          console.log('[ProfileStore] Resposta bruta da API /api/perfil/me:', JSON.stringify(data))
+
+          if (data) {
+            this.profile = data
+            console.log('[ProfileStore] Perfil setado no store:', JSON.stringify(this.profile))
+          } else {
+            console.warn('[ProfileStore] API retornou dados vazios ou null, mantendo o estado atual.')
+          }
+        } catch (err: any) {
+          this.error = err.message || 'Erro ao buscar perfil do usuário'
+          console.error('[ProfileStore] Erro ao buscar perfil:', err)
+        } finally {
+          this.loading = false
+          this.fetchPromise = null
+        }
+      })()
+
+      return this.fetchPromise
     },
 
     /**
