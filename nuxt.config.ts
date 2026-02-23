@@ -20,6 +20,11 @@ export default defineNuxtConfig({
       exclude: ['/esquecisenha', '/redefinirsenha']
     }
   },
+  nitro: {
+    externals: {
+      inline: ['xlsx']
+    }
+  },
   runtimeConfig: {
     // Configurações privadas do servidor (apenas backend)
     dropboxClientId: process.env.DROPBOX_CLIENT_ID || '',

@@ -104,3 +104,15 @@ export interface IUserRoleResponse {
   role: UserRole
   userId: string
 }
+
+/** Representa um produto no catálogo (tabela produtos) */
+export interface IProduto {
+  IDPRODUTO: number | null
+  IDSUBPRODUTO: number | null
+  DESCRICAO: string | null
+  MODELO: string | null
+  EMBALAGEMSAIDA: string | null
+  VALPRECOVAREJO: string | null
+  QTDATUALESTOQUE: string | null
+  VALTOTAL: string | null
+}

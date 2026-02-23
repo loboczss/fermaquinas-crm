@@ -32,10 +32,10 @@ export default defineEventHandler(async (event) => {
       .eq('user_id', user.id)
       .maybeSingle()
 
-    // Se houver erro (pode ser RLS ou perfil não existe), tenta com service role
-    if (profileError) {
-      console.warn('[API auth/role] Erro com client auth, tentando service role:', profileError)
-      
+    // Se houver erro ou perfil não encontrado (RLS pode omitir a linha sem erro), tenta com service role
+    if (profileError || !profile) {
+      console.warn('[API auth/role] Erro ou perfil omitido (RLS?) com client auth, tentando service role')
+
       const { data: serviceProfile, error: serviceError } = await serviceRole
         .from('profiles')
         .select('role')

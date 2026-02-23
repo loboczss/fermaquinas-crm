@@ -9,27 +9,33 @@ export type MetricaRow = IMetricaRow
 
 // ─── Store ───────────────────────────────────────────────────
 export const useChatDashboard = defineStore('chatDashboard', {
-  state: () => ({
-    filtroInicio: format(subDays(new Date(), 7), 'yyyy-MM-dd'),
-    filtroFim: format(new Date(), 'yyyy-MM-dd'),
-    valorTotalVendas: 0,
-    vendasPeriodo: [] as IVendaPeriodo[],
+  state: () => {
+    // Garantir datas locais para os filtros iniciais
+    const now = new Date()
+    const inicio = subDays(now, 7)
 
-    metricas: [] as IMetricaRow[],
-    contatos: [] as IContatoResumo[],
-    contatoSelecionado: null as string | null,
-    mensagensAtuais: [] as IMensagem[],
+    return {
+      filtroInicio: format(inicio, 'yyyy-MM-dd'),
+      filtroFim: format(now, 'yyyy-MM-dd'),
+      valorTotalVendas: 0,
+      vendasPeriodo: [] as IVendaPeriodo[],
 
-    loadingMetricas: false,
-    loadingContatos: false,
-    loadingMensagens: false,
-    error: null as string | null,
-    kpisGlobais: {
-      total_clientes: 0,
-      total_novos: 0,
-      total_recorrentes: 0
-    },
-  }),
+      metricas: [] as IMetricaRow[],
+      contatos: [] as IContatoResumo[],
+      contatoSelecionado: null as string | null,
+      mensagensAtuais: [] as IMensagem[],
+
+      loadingMetricas: false,
+      loadingContatos: false,
+      loadingMensagens: false,
+      error: null as string | null,
+      kpisGlobais: {
+        total_clientes: 0,
+        total_novos: 0,
+        total_recorrentes: 0
+      },
+    }
+  },
 
   // ─── Getters ─────────────────────────────────────────────
   getters: {
@@ -85,7 +91,12 @@ export const useChatDashboard = defineStore('chatDashboard', {
 
       for (const v of vendasList) {
         if (!v.created_at) continue
-        const dateKey = v.created_at.substring(0, 10) // 'yyyy-MM-dd'
+
+        // CORREÇÃO: Usar data local para agrupar, não apenas substring UTC
+        // parseISO + format local ou simplesmente formatar a data local
+        const dateObj = new Date(v.created_at)
+        const dateKey = format(dateObj, 'yyyy-MM-dd')
+
         const current = vendasMap.get(dateKey) || { qtd: 0, valor: 0 }
         current.qtd += 1
         current.valor += (Number(v.valor_venda) || 0)

@@ -1,75 +1,49 @@
-# Nuxt Minimal Starter
+# Fermaquinas CRM — Loja de Máquinas e Ferragens
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+Um sistema de gestão moderno para controle de faturamento, atendimento e estoque, construído com Nuxt 4, Supabase, Tailwind CSS e Dropbox API.
 
-## Setup
+## 🚀 Funcionalidades Principais
 
-Make sure to install dependencies:
+- **Dashboard de Atendimentos**: Visão geral de faturamento bruto, novos clientes, volume de atendimentos e indicadores de conversão com gráficos dinâmicos e filtros de período.
+- **Gestão de Vendas**: Registro e acompanhamento de vendas com autocomplete inteligente de produtos e cálculo automático de totais.
+- **Catálogo de Produtos**: Gestão completa de produtos (CRUD) com edição individual e exclusão segura.
+- **Sincronização via XLSX**: Atualização em massa do catálogo de produtos com processamento no servidor e backup automático datado no Dropbox.
+- **Controle de Acesso (RBAC)**: Visibilidade e permissões dinâmicas baseadas no perfil do usuário (`Master` vs `Vendedor`).
+- **Interface Premium**: Design responsivo com suporte a Dark Mode, animações suaves e componentes customizados (Toasts, Modais, Autocomplete).
 
-```bash
-# npm
-npm install
+## 🛠️ Tecnologias
 
-# pnpm
-pnpm install
+- **Framework**: Nuxt 4 & Vue 3 (Composition API)
+- **Estilo**: Tailwind CSS (Design System customizado)
+- **Estado**: Pinia (Stores reativas)
+- **Backend**: Supabase (BaaS), Nitro (serverless routes)
+- **Integrações**: Dropbox API, SheetJS (xlsx), Date-fns, Chart.js
 
-# yarn
-yarn install
+## 📥 Instalação & Uso
 
-# bun
-bun install
-```
+1. Instale as dependências:
+   ```bash
+   npm install
+   ```
 
-## Development Server
+2. Configure o arquivo `.env` com suas credenciais:
+   ```env
+   SUPABASE_URL=your_url
+   SUPABASE_KEY=your_publishable_key
+   SUPABASE_SECRET_KEY=your_service_role_key
+   DROPBOX_CLIENT_ID=your_id
+   DROPBOX_CLIENT_SECRET=your_secret
+   DROPBOX_REFRESH_TOKEN=your_token
+   ```
 
-Start the development server on `http://localhost:3000`:
+3. Inicie o servidor de desenvolvimento:
+   ```bash
+   npm run dev
+   ```
 
-```bash
-# npm
-npm run dev
+## 🏗️ Estrutura do Projeto
 
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
-```
-
-## Production
-
-Build the application for production:
-
-```bash
-# npm
-npm run build
-
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
-```
-
-Locally preview production build:
-
-```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
-```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+- `/app`: Código fonte do frontend (components, pages, stores, layouts).
+- `/server`: Endpoints de API e utilitários de servidor.
+- `/shared`: Tipagens TypeScript e constantes globais.
+- `/public`: Ativos estáticos.

@@ -31,7 +31,8 @@ export const useAuthStore = defineStore('auth', {
      * Só faz requisição se houver userId.
      */
     async fetchUserRole() {
-      if (this.userRole) return // Já carregado, evita re-fetch
+      // Só pula se já carregou com sessão real (userId presente)
+      if (this.userRole && this.userId) return
 
       this.loading = true
       this.error = null

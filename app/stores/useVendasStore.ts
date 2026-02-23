@@ -73,6 +73,22 @@ export const useVendasStore = defineStore('vendasStore', {
                 console.error('Erro criar venda:', err)
                 throw err
             }
+        },
+
+        async deleteVenda(id: number) {
+            const toast = useToast()
+
+            try {
+                await $fetch(`/api/vendas/${id}`, { method: 'DELETE' })
+                toast.success('Venda excluída com sucesso!')
+                this.vendas = this.vendas.filter(v => v.id !== id)
+                this.totalItems--
+            } catch (err: any) {
+                const msg = err.data?.message || 'Erro ao excluir venda'
+                toast.error(msg)
+                console.error('[VendasStore] Erro ao excluir venda:', err)
+                throw err
+            }
         }
     }
 })

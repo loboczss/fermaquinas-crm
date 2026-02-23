@@ -36,9 +36,10 @@ export default defineEventHandler(async (event) => {
         }
 
         // Montando payload do metadata a atualizar (full_name e phone vão para user_metadata)
-        const updateData: { full_name?: string, phone?: string } = {}
+        const updateData: { full_name?: string, phone?: string, avatar_url?: string } = {}
         if (full_name !== undefined) updateData.full_name = full_name
         if (phone !== undefined) updateData.phone = phone
+        if (avatar_url !== undefined) updateData.avatar_url = avatar_url
 
         // Atualizar no Supabase Auth (user_metadata) se houver dados
         if (Object.keys(updateData).length > 0) {

@@ -54,7 +54,7 @@ fermaquinas-crm/
 ├── 📂 app/                          # Frontend Vue/Nuxt
 │   ├── 📂 components/               # Componentes Vue reutilizáveis
 │   │   ├── AppHeader.vue           # Header global com logo
-│   │   ├── AppToast.vue            # Sistema de notificações
+│   │   ├── AppToast.vue            # Componente de feedback global
 │   │   ├── BaseButton.vue          # Botão base reutilizável
 │   │   ├── BaseInput.vue           # Input base
 │   │   ├── BaseModal.vue           # Modal base
@@ -81,13 +81,20 @@ fermaquinas-crm/
 │   │   │   ├── VendasCreateModal.vue
 │   │   │   └── VendasEditModal.vue
 │   │   │
+│   │   ├── 📂 produtos/            # Componentes de produtos
+│   │   │   ├── ProdutosHeader.vue  # Cabeçalho com busca (debounce)
+│   │   │   ├── ProdutosTable.vue   # Listagem + Paginação + Ações (Master)
+│   │   │   └── ProdutosUpload.vue  # Modal/Botão de Upload XLSX (Master)
+│   │   │
 │   │   ├── 📂 dashboard/           # Componentes dashboard
 │   │   │   ├── KpiCard.vue         # Cards de métricas
-│   │   │   ├── ChartCard.vue       # Gráficos
-│   │   │   ├── ContactList.vue     # Lista contatos
-│   │   │   ├── ChatArea.vue        # Área de chat
-│   │   │   ├── MessageBubble.vue   # Mensagem individual
-│   │   │   └── Filters.vue         # Filtros dashboard
+│   │   │   ├── ModernChart.vue     # Gráficos e tendências
+│   │   │   ├── ContactsTable.vue   # Tabela de contatos
+│   │   │   └── MessageBubble.vue   # Balões de mensagem
+│   │   │
+│   │   ├── 📂 atendimentos/        # Componentes Atendimentos/Chat
+│   │   │   ├── ChatModal.vue       # Modal do Chat WhatsApp
+│   │   │   └── ContactList.vue     # Lista de contatos recentes
 │   │   │
 │   │   ├── 📂 perfil/              # Componentes de perfil
 │   │   │   ├── PerfilForm.vue
@@ -103,7 +110,7 @@ fermaquinas-crm/
 │   │   ├── useAuth.ts              # Autenticação Supabase
 │   │   ├── useDarkMode.ts          # Modo escuro
 │   │   ├── useProfile.ts           # Perfil do usuário
-│   │   └── useToast.ts             # Sistema de toasts
+│   │   └── useToast.ts             # Estado e funções do Toast Alerts
 │   │
 │   ├── 📂 stores/                  # Gerenciamento de estado (Pinia)
 │   │   ├── useAuthStore.ts         # ⭐ Auth + RBAC (role: master/vendedor)
@@ -119,7 +126,7 @@ fermaquinas-crm/
 │   │   ├── dashboard.vue           # /dashboard - Chat & Métricas
 │   │   ├── crm.vue                 # /crm - Gestão clientes
 │   │   ├── vendas.vue              # /vendas - Histórico vendas
-│   │   ├── calendario.vue          # /calendario (placeholder)
+│   │   ├── produtos.vue            # /produtos - Módulo de produtos
 │   │   ├── perfil.vue              # /perfil - Dados usuário
 │   │   ├── esquecisenha.vue        # /esquecisenha
 │   │   ├── redefinirsenha.vue      # /redefinirsenha
@@ -169,10 +176,14 @@ fermaquinas-crm/
 │       │   ├── contatos.get.ts     # GET /api/dashboard/contatos
 │       │   └── mensagens.get.ts    # GET /api/dashboard/mensagens
 │       │
-│       ├── 📂 perfil/              # API Perfil
-│       │   ├── me.get.ts           # GET /api/perfil/me
-│       │   ├── me.put.ts           # PUT /api/perfil/me
-│       │   └── initialize.post.ts  # POST /api/perfil/initialize
+│       ├── 📂 produtos/            # API Produtos
+│       │   ├── index.get.ts        # GET /api/produtos (lista)
+│       │   ├── index.delete.ts     # DELETE /api/produtos (individual)
+│       │   ├── search.get.ts       # GET /api/produtos/search (ID/Descrição)
+│       │   └── upload.post.ts      # POST /api/produtos/upload (XLSX)
+│       │
+│       ├── 📂 dropbox/             # API Integração Dropbox
+│       │   └── upload.post.ts      # POST /api/dropbox/upload (avatars)
 │       │
 │       └── 📂 workspaces/          # API Workspaces
 │           ├── index.get.ts        # GET /api/workspaces
@@ -310,7 +321,7 @@ type UserRole = 'master' | 'vendedor'
 │ created_at (timestamp)       │
 └──────────────────────────────┘
 
-┌──────────────────────┐
+┌──────────────────────────────┐
 │   workspaces         │
 ├──────────────────────┤
 │ id (bigint)          │
@@ -320,6 +331,20 @@ type UserRole = 'master' | 'vendedor'
 │ icone (text)         │
 │ created_at           │
 └──────────────────────┘
+
+┌──────────────────────────────┐
+│   produtos           │ (Catálogo Automotivo)
+├──────────────────────────────┤
+│ IDPRODUTO (bigint)   │ → ID numérico
+│ IDSUBPRODUTO (bigint)│ → ID sub-peça
+│ DESCRICAO (text)     │
+│ MODELO (text)        │
+│ EMBALAGEMSAIDA (text)│
+│ VALPRECOVAREJO (text)│ → Preço Formatado
+│ QTDATUALESTOQUE (text)│
+│ IDEMPRESA (bigint)   │
+└──────────────────────────────┘
+
 ```
 
 ---
@@ -360,7 +385,19 @@ type UserRole = 'master' | 'vendedor'
 
 ---
 
-### 4️⃣ **Perfil** (`/perfil`)
+### 4️⃣ **Produtos** (`/produtos`)
+- Gerenciamento de catálogo (peças e serviços)
+- **Busca Híbrida**: Pesquisa instantânea por Código (ID) ou Descritivo (Modelo/Nome)
+- **Gestão em Massa**: Upload de arquivo XLSX para atualização total (Master)
+- **Role Control**: Vendedores apenas visualizam; Master pode excluir e atualizar via arquivo
+- **Paginação**: Carregamento eficiente de milhares de itens via server-side range
+
+**Stores:** `useProdutosStore`  
+**API:** `/api/produtos/*`
+
+---
+
+### 5️⃣ **Perfil** (`/perfil`)
 - Editar dados pessoais
 - Alterar senha
 - Exibição do role (Master/Vendedor)
@@ -369,7 +406,7 @@ type UserRole = 'master' | 'vendedor'
 
 ---
 
-### 5️⃣ **Workspaces** (`/`)
+### 6️⃣ **Workspaces** (`/`)
 - Grid de workspaces do usuário
 - Criar novos workspaces
 - Deletar workspaces
@@ -423,10 +460,15 @@ type UserRole = 'master' | 'vendedor'
 | GET | `/api/dashboard/metrics` | ✅ | ✅ Master/Vendedor | KPIs e métricas |
 | GET | `/api/dashboard/contatos` | ✅ | ✅ Master/Vendedor | Contatos únicos |
 | GET | `/api/dashboard/mensagens` | ✅ | - | Mensagens de um contato |
-| **Workspaces** |
-| GET | `/api/workspaces` | ✅ | - | Lista workspaces usuário |
-| POST | `/api/workspaces` | ✅ | - | Criar workspace |
+| **Arquivos (Dropbox)** |
+| POST | `/api/dropbox/upload` | ✅ | - | Upload de avatares/mídias |
 | DELETE | `/api/workspaces/:id` | ✅ | - | Deletar workspace |
+| **Produtos** |
+| GET | `/api/produtos` | ✅ | - | Lista produtos paginado |
+| GET | `/api/produtos/search` | ✅ | - | Busca por texto ou ID |
+| POST | `/api/produtos/upload` | ✅ | ✅ Master | Importar XLSX (Delete All + Insert) |
+| DELETE | `/api/produtos` | ✅ | ✅ Master | Exclusão pontual de produto |
+
 
 ### **Padrão de Resposta API**
 
@@ -524,10 +566,10 @@ export default defineEventHandler(async (event) => {
 
 ## 📞 Contato & Suporte
 
-**Desenvolvedor:** [Seu Nome/Empresa]  
+**Desenvolvedor:** Loboczss
 **Projeto:** Fermaquinas Materiais para Construção CRM  
-**Última Atualização:** 22 de Fevereiro de 2026
+**Última Atualização:** 22 de Fevereiro de 2026 (Inclusão Módulo Produtos/XLSX)
 
 ---
 
-**🎉 Este mapa reflete o estado atual do projeto após o rebrand completo e implementação do sistema RBAC!**
+**🎉 Este mapa reflete o estado atual do projeto após a implementação do Módulo de Produtos com atualização via XLSX e controle RBAC!**

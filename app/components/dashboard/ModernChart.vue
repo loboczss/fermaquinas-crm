@@ -169,21 +169,21 @@ const enhancedChartData = computed(() => {
           const ctx = context.chart.ctx
           const gradient = ctx.createLinearGradient(0, 0, 0, 300)
           if (index === 0) {
-            gradient.addColorStop(0, 'rgba(0, 220, 129, 0.25)') // primary-500
-            gradient.addColorStop(1, 'rgba(0, 220, 129, 0)')
+            gradient.addColorStop(0, 'rgba(255, 204, 0, 0.25)') // primary-500 (#FFCC00)
+            gradient.addColorStop(1, 'rgba(255, 204, 0, 0)')
           } else if (index === 1) {
-            gradient.addColorStop(0, 'rgba(245, 158, 11, 0.25)') // warning-500
+            gradient.addColorStop(0, 'rgba(245, 158, 11, 0.25)') // warning-500 (#F59E0B)
             gradient.addColorStop(1, 'rgba(245, 158, 11, 0)')
           } else if (index === 2) {
-            gradient.addColorStop(0, 'rgba(139, 92, 246, 0.25)') // violet-500
+            gradient.addColorStop(0, 'rgba(139, 92, 246, 0.25)') // violet-500 (#8B5CF6)
             gradient.addColorStop(1, 'rgba(139, 92, 246, 0)')
           } else {
-            gradient.addColorStop(0, 'rgba(16, 185, 129, 0.25)') // emerald-500
+            gradient.addColorStop(0, 'rgba(16, 185, 129, 0.25)') // emerald-500 (#10B981)
             gradient.addColorStop(1, 'rgba(16, 185, 129, 0)')
           }
           return gradient
         },
-        borderColor: index === 0 ? '#00DC81' : index === 1 ? '#F59E0B' : index === 2 ? '#8B5CF6' : '#10B981',
+        borderColor: index === 0 ? '#FFCC00' : index === 1 ? '#F59E0B' : index === 2 ? '#8B5CF6' : '#10B981',
       }
     }),
   }

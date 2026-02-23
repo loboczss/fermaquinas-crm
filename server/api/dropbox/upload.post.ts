@@ -194,14 +194,12 @@ export default defineEventHandler(async (event): Promise<UploadSuccessResponse> 
   }
 
   // ============================================
-  // PASSO E: Converter para link direto (raw)
+  // PASSO E: Converter para link direto
   // ============================================
   
-  // Substitui '?dl=0' ou '&dl=0' por '?raw=1' para link direto de imagem
-  // O Dropbox pode retornar ?rlkey=...&dl=0, então usamos regex para capturar ambos
-  const directLink = sharedLink
-    .replace(/[?&]dl=0/g, '?raw=1')
-    .replace('www.dropbox.com', 'dl.dropboxusercontent.com')
+  // Apenas muda o domínio para dl.dropboxusercontent.com
+  // Mantém ?dl=0 ou &dl=0 como está (não converte para ?raw=1)
+  const directLink = sharedLink.replace('www.dropbox.com', 'dl.dropboxusercontent.com')
 
   console.log('[Dropbox] Link direto gerado:', directLink)
 

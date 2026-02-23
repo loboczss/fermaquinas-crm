@@ -18,10 +18,10 @@ export default defineEventHandler(async (event) => {
     // Usar o client do Supabase para obter o usuário da sessão
     const client = await serverSupabaseClient(event)
     const serviceRole = serverSupabaseServiceRole(event)
-    
+
     // Obter o usuário da sessão atual
     const { data: { user }, error: sessionError } = await client.auth.getUser()
-    
+
     if (sessionError || !user || !user.id) {
       throw createError({
         statusCode: 401,
@@ -47,10 +47,8 @@ export default defineEventHandler(async (event) => {
       .eq('user_id', user.id)
       .maybeSingle()
 
-    // Se falhar com client, tenta com service role
-    if (profileError) {
-      console.warn('[API perfil/me] Erro ao buscar role com client:', profileError)
-      
+    // Se falhar com client ou não encontrar dados (RLS pode retornar 0 linhas sem erro), tenta com service role
+    if (profileError || !profileData) {
       const { data: serviceProfile, error: serviceError } = await serviceRole
         .from('profiles')
         .select('role, avatar_url')
@@ -76,7 +74,7 @@ export default defineEventHandler(async (event) => {
       phone: user.user_metadata?.phone || null,
       phone_verified: false,
       role: profileData?.role || 'vendedor',
-      avatar_url: profileData?.avatar_url || null,
+      avatar_url: profileData?.avatar_url || user.user_metadata?.avatar_url || null,
     }
   } catch (error: any) {
     // Se já for um erro HTTP, re-lança

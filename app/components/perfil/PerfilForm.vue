@@ -6,6 +6,7 @@ import { useProfileStore } from '~/stores/profile'
 
 const perfilFormId = 'perfil-form-component'
 const profileStore = useProfileStore()
+const avatarUrl = computed(() => profileStore.profile?.avatar_url)
 
 // Local states for form feedback
 const loading = ref(false)
@@ -84,12 +85,17 @@ const handleAvatarUpload = async (event: Event) => {
 
     if (uploadResponse.success && uploadResponse.foto_url) {
       // Atualizar o avatar_url no perfil via API
+      console.log('[PerfilForm] Enviando atualização de avatar com URL:', uploadResponse.foto_url)
+      
       const result = await profileStore.updateProfile({
         avatar_url: uploadResponse.foto_url
       })
 
+      console.log('[PerfilForm] Resultado do updateProfile:', result)
+
       if (result.success) {
         success.value = 'Foto de perfil atualizada com sucesso!'
+        // computed avatarUrl e a store reagirão automaticamente
       } else {
         error.value = result.error || 'Erro ao atualizar foto de perfil'
       }
@@ -162,8 +168,8 @@ const formatDate = (dateString: string) => {
         >
           <!-- Image if avatar_url exists -->
           <img
-            v-if="profileStore.profile?.avatar_url"
-            :src="profileStore.profile.avatar_url"
+            v-if="avatarUrl"
+            :src="avatarUrl"
             :alt="profileStore.profile?.full_name || 'Avatar'"
             class="w-full h-full object-cover"
           />

@@ -3,12 +3,24 @@ import BaseDropdown from '~/components/BaseDropdown.vue'
 import { useAuth } from '~/composables/useAuth'
 import { useAuthStore } from '~/stores/useAuthStore'
 import { useProfileStore } from '~/stores/profile'
-import { computed } from 'vue'
+import { computed, watch, onMounted } from 'vue'
 
 const { logout } = useAuth()
 const user = useSupabaseUser()
 const authStore = useAuthStore()
 const profileStore = useProfileStore()
+
+// Debug: Log quando o componente monta
+onMounted(async () => {
+  // Se não há perfil carregado e há usuário autenticado, carrega
+  if (user.value?.id && !profileStore.profile) {
+    try {
+      await profileStore.fetchProfile()
+    } catch (err) {
+      console.error('[MenuDropdown Mount] Erro ao carregar perfil:', err)
+    }
+  }
+})
 
 // Metadata extraction - use profileStore como source de verdade
 const userName = computed(() => profileStore.profile?.full_name || user.value?.user_metadata?.full_name || 'Usuário')
@@ -17,12 +29,14 @@ const userInitials = computed(() => {
   const name = profileStore.profile?.full_name || user.value?.user_metadata?.full_name || 'U'
   return name
     .split(' ')
-    .map(n => n.charAt(0))
+    .map((n: string) => n.charAt(0))
     .slice(0, 2)
     .join('')
     .toUpperCase()
 })
-const userAvatar = computed(() => profileStore.profile?.avatar_url || null)
+
+// Avatar reativo
+const avatarUrl = computed(() => profileStore.profile?.avatar_url)
 
 // Role badge
 const roleBadgeLabel = computed(() => authStore.isMaster ? 'MASTER' : 'VENDEDOR')
@@ -87,8 +101,8 @@ const dropdownItems = [
         <div class="relative flex-shrink-0">
           <!-- Avatar Image if exists -->
           <img
-            v-if="userAvatar"
-            :src="userAvatar"
+            v-if="avatarUrl"
+            :src="avatarUrl"
             :alt="userName"
             class="w-9 h-9 rounded-full object-cover ring-1 ring-secondary-200/70 dark:ring-dark-border/80"
           />

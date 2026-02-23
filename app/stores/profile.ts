@@ -61,8 +61,13 @@ export const useProfileStore = defineStore('profile', {
           }
         })
 
+        console.log('[ProfileStore] Resposta bruta da API /api/perfil/me:', JSON.stringify(data))
+
         if (data) {
           this.profile = data
+          console.log('[ProfileStore] Perfil setado no store:', JSON.stringify(this.profile))
+        } else {
+          console.warn('[ProfileStore] API retornou dados vazios ou null, mantendo o estado atual.')
         }
       } catch (err: any) {
         this.error = err.message || 'Erro ao buscar perfil do usuário'
@@ -80,16 +85,19 @@ export const useProfileStore = defineStore('profile', {
       this.error = null
 
       try {
+        console.log('[ProfileStore] Enviando atualização:', payload)
+
         const data = await $fetch<{ message: string, user: any }>('/api/perfil/me', {
           method: 'PUT',
           body: payload
         })
 
-        if (data && this.profile) {
-          // Atualiza o estado local com os dados retornados do servidor
-          if (data.user.full_name !== undefined) this.profile.full_name = data.user.full_name
-          if (data.user.phone !== undefined) this.profile.phone = data.user.phone
-          if (data.user.avatar_url !== undefined) this.profile.avatar_url = data.user.avatar_url
+        console.log('[ProfileStore] Resposta do PUT:', data)
+
+        if (data) {
+          console.log('[ProfileStore] Atualizando estado local do perfil...')
+          this.profile = { ...this.profile, ...(data.user || data) } as UserProfile
+          console.log('[ProfileStore] Perfil atualizado:', this.profile)
         }
         return { success: true }
       } catch (err: any) {

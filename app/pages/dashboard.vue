@@ -1,5 +1,6 @@
 ﻿<script setup lang="ts">
 import { useChatDashboard } from '~/stores/useChatDashboard'
+import { format, subDays } from 'date-fns'
 import KpiCard from '~/components/dashboard/KpiCard.vue'
 import ModernChart from '~/components/dashboard/ModernChart.vue'
 import ContactsTable from '~/components/dashboard/ContactsTable.vue'
@@ -13,8 +14,21 @@ onMounted(() => {
   const savedInicio = localStorage.getItem('dash_filtro_inicio')
   const savedFim = localStorage.getItem('dash_filtro_fim')
   
-  if (savedInicio) store.filtroInicio = savedInicio
-  if (savedFim) store.filtroFim = savedFim
+  if (savedInicio) {
+    store.filtroInicio = savedInicio
+  } else {
+    // Fallback para data local se não houver salvo
+    const now = new Date()
+    store.filtroInicio = format(subDays(now, 7), 'yyyy-MM-dd')
+  }
+
+  if (savedFim) {
+    store.filtroFim = savedFim
+  } else {
+    // Fallback para data local se não houver salvo
+    const now = new Date()
+    store.filtroFim = format(now, 'yyyy-MM-dd')
+  }
 
   store.aplicarFiltro()
 })
