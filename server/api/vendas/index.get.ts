@@ -1,4 +1,4 @@
-import { serverSupabaseClient } from '#supabase/server'
+import { serverSupabaseClient, serverSupabaseServiceRole } from '#supabase/server'
 
 /**
  * GET /api/vendas
@@ -21,11 +21,12 @@ export default defineEventHandler(async (event) => {
   const from = (pageNum - 1) * limitNum
   const to = from + limitNum - 1
 
-  // Buscar role do usuário
-  const { data: profile } = await client
+  // Buscar role do usuário usando service_role para contornar RLS
+  const serviceClient = serverSupabaseServiceRole(event)
+  const { data: profile } = await serviceClient
     .from('profiles')
     .select('role')
-    .eq('id', user.id)
+    .eq('user_id', user.id)
     .single()
 
   const isMaster = profile?.role === 'master'

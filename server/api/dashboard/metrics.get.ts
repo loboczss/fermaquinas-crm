@@ -21,14 +21,6 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'data_inicio e data_fim são obrigatórios' })
   }
 
-  // Buscar role do usuário
-  const { data: profile } = await client
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single()
-
-  const isMaster = profile?.role === 'master'
 
   // 1. Buscar métricas da RPC (kpis + gráfico)
   const { data: rpcData, error: rpcError } = await client.rpc(
@@ -44,18 +36,13 @@ export default defineEventHandler(async (event) => {
   const kpis = res?.kpis || { total_clientes: 0, total_novos: 0, total_recorrentes: 0 }
   const grafico = res?.grafico || []
 
-  // 2. Buscar vendas do período com RBAC
+  // 2. Buscar vendas do período (Global para todos no dashboard)
   let vendasQuery = client
     .from('historico_vendas_fermaquinas')
     .select('valor_venda, created_at')
     .gte('created_at', `${data_inicio}T00:00:00`)
     .lte('created_at', `${data_fim}T23:59:59`)
     .is('deleted_at', null)
-
-  // RBAC: vendedor só vê suas próprias vendas
-  if (!isMaster) {
-    vendasQuery = vendasQuery.eq('vendedor_id', user.id)
-  }
 
   const { data: vendasData, error: vendasError } = await vendasQuery
 
