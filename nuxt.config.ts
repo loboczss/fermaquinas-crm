@@ -5,7 +5,13 @@ export default defineNuxtConfig({
   },
   devtools: { enabled: false },
   app: {
-    pageTransition: { name: 'page', mode: 'out-in' }
+    pageTransition: { name: 'page', mode: 'out-in' },
+    head: {
+      title: 'Crm: Fermaquinas',
+      link: [
+        { rel: 'icon', type: 'image/png', href: '/logo.png' }
+      ]
+    }
   },
   modules: [
     '@nuxtjs/tailwindcss',
