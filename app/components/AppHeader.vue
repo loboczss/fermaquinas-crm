@@ -34,7 +34,7 @@ const toggleMobileMenu = () => {
         </button>
 
         <!-- Logo -->
-        <NuxtLink to="/" class="flex items-center gap-2.5 group flex-shrink-0" @click="isMobileMenuOpen = false">
+        <NuxtLink to="/dashboard" class="flex items-center gap-2.5 group flex-shrink-0" @click="isMobileMenuOpen = false">
           <img src="/logo.png" alt="Fermaquinas" class="h-9 w-auto transition-transform duration-200 group-hover:scale-[1.03]" />
         </NuxtLink>
       </div>

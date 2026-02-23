@@ -1,4 +1,15 @@
 <script setup lang="ts">
+// Redireciona imediatamente para o dashboard
+navigateTo('/dashboard', { replace: true })
+
+definePageMeta({
+  middleware: [
+    function (to, from) {
+      return navigateTo('/dashboard', { replace: true })
+    }
+  ]
+})
+
 import WorkspaceGrid from '~/components/workspaces/WorkspaceGrid.vue'
 import ModalAddWorkspace from '~/components/workspaces/ModalAddWorkspace.vue'
 import { ref, onMounted } from 'vue'
@@ -15,7 +26,7 @@ useHead({
 const workspaceStore = useWorkspaceStore()
 
 onMounted(() => {
-  workspaceStore.fetchWorkspaces()
+  // workspaceStore.fetchWorkspaces() // Desativado
 })
 
 const isAddModalOpen = ref(false)
