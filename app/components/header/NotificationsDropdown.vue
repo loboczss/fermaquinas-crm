@@ -1,100 +1,60 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
+import { useNotificacoesStore } from '~/stores/useNotificacoesStore'
+import { formatDistanceToNow, parseISO } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 
-interface Notification {
-  id: number
-  type: 'info' | 'success' | 'warning' | 'error'
-  title: string
-  message: string
-  time: string
-  read: boolean
-}
-
-const notifications = ref<Notification[]>([
-  {
-    id: 1,
-    type: 'success',
-    title: 'Nova venda realizada',
-    message: 'Você fechou uma venda de R$ 2.500,00',
-    time: '5 min atrás',
-    read: false
-  },
-  {
-    id: 2,
-    type: 'info',
-    title: 'Novo atendimento',
-    message: 'Cliente João Silva iniciou um atendimento',
-    time: '15 min atrás',
-    read: false
-  },
-  {
-    id: 3,
-    type: 'warning',
-    title: 'Reunião agendada',
-    message: 'Reunião com cliente às 15:00',
-    time: '1 hora atrás',
-    read: false
-  },
-  {
-    id: 4,
-    type: 'info',
-    title: 'Atualização do sistema',
-    message: 'Nova funcionalidade disponível no CRM',
-    time: '2 horas atrás',
-    read: true
-  },
-  {
-    id: 5,
-    type: 'success',
-    title: 'Meta atingida',
-    message: 'Você atingiu 80% da meta mensal',
-    time: '1 dia atrás',
-    read: true
-  }
-])
-
+const store = useNotificacoesStore()
 const isOpen = ref(false)
 
-const unreadCount = computed(() => notifications.value.filter(n => !n.read).length)
+const formatTime = (dateString: string) => {
+  try {
+    return formatDistanceToNow(parseISO(dateString), { addSuffix: true, locale: ptBR })
+  } catch {
+    return dateString
+  }
+}
 
-const toggle = () => {
+const toggle = async () => {
   isOpen.value = !isOpen.value
+  if (isOpen.value) {
+    // Busca novamente para garantir atualizações quando abre
+    await store.fetchNotificacoes()
+  }
 }
 
 const close = () => {
   isOpen.value = false
 }
 
-const markAsRead = (id: number) => {
-  const notification = notifications.value.find(n => n.id === id)
-  if (notification) {
-    notification.read = true
-  }
+const markAsRead = async (id: number) => {
+  await store.marcarComoLida([id])
 }
 
-const markAllAsRead = () => {
-  notifications.value.forEach(n => n.read = true)
+const markAllAsRead = async () => {
+  await store.marcarTodasComoLidas()
 }
 
-const getTypeColor = (type: string) => {
-  const colors = {
-    info: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400',
-    success: 'bg-success-100 dark:bg-success-900/30 text-success-600 dark:text-success-400',
-    warning: 'bg-warning-100 dark:bg-warning-900/30 text-warning-600 dark:text-warning-400',
-    error: 'bg-danger-100 dark:bg-danger-900/30 text-danger-600 dark:text-danger-400'
-  }
-  return colors[type as keyof typeof colors] || colors.info
+const getTypeColor = (tipo: string) => {
+  if (tipo === 'venda') return 'bg-success-100 dark:bg-success-900/30 text-success-600 dark:text-success-400'
+  if (tipo === 'aniversario') return 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400'
+  return 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
 }
 
-const getTypeIcon = (type: string) => {
-  const icons = {
-    info: 'M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z',
-    success: 'M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z',
-    warning: 'M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z',
-    error: 'M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z'
-  }
-  return icons[type as keyof typeof icons] || icons.info
+const getTypeIcon = (tipo: string) => {
+  if (tipo === 'venda') return 'M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z' // Cart icon
+  if (tipo === 'aniversario') return 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' // Clock/Gift minimal logic (using standard icons for simplicity, but ideally a gift/cake)
+  return 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
 }
+
+// Fechar ao pressionar ESC
+onMounted(() => {
+  const handleEsc = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') close()
+  }
+  window.addEventListener('keydown', handleEsc)
+  onUnmounted(() => window.removeEventListener('keydown', handleEsc))
+})
 </script>
 
 <template>
@@ -109,12 +69,14 @@ const getTypeIcon = (type: string) => {
       </svg>
       
       <!-- Badge de notificações não lidas -->
-      <span 
-        v-if="unreadCount > 0" 
-        class="absolute -top-1 -right-1 min-w-[1.25rem] h-5 px-1 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center border-2 border-white dark:border-dark-surface"
-      >
-        {{ unreadCount > 9 ? '9+' : unreadCount }}
-      </span>
+      <ClientOnly>
+        <span 
+          v-if="store.totalNaoLidas > 0" 
+          class="absolute -top-1 -right-1 min-w-[1.25rem] h-5 px-1 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center border-2 border-white dark:border-dark-surface shadow-sm"
+        >
+          {{ store.totalNaoLidas > 9 ? '9+' : store.totalNaoLidas }}
+        </span>
+      </ClientOnly>
     </button>
 
     <!-- Invisible Overlay -->
@@ -131,7 +93,7 @@ const getTypeIcon = (type: string) => {
     >
       <div 
         v-if="isOpen" 
-        class="absolute right-0 mt-2 w-96 bg-white dark:bg-dark-surface rounded-2xl shadow-xl shadow-black/10 dark:shadow-black/40 border border-secondary-100 dark:border-dark-border overflow-hidden z-50"
+        class="absolute right-0 mt-2 w-96 bg-white dark:bg-dark-surface rounded-2xl shadow-xl shadow-black/10 dark:shadow-black/40 border border-secondary-100 dark:border-dark-border overflow-hidden z-50 text-left"
       >
         <!-- Header -->
         <div class="px-4 py-3 border-b border-secondary-100 dark:border-dark-border flex items-center justify-between">
@@ -139,7 +101,7 @@ const getTypeIcon = (type: string) => {
             Notificações
           </h3>
           <button 
-            v-if="unreadCount > 0"
+            v-if="store.totalNaoLidas > 0"
             @click="markAllAsRead"
             class="text-xs font-medium text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
           >
@@ -148,58 +110,69 @@ const getTypeIcon = (type: string) => {
         </div>
 
         <!-- Notificações List -->
-        <div class="max-h-[400px] overflow-y-auto">
-          <div 
-            v-for="notification in notifications" 
-            :key="notification.id"
-            @click="markAsRead(notification.id)"
-            class="px-4 py-3 hover:bg-secondary-50 dark:hover:bg-dark-bg cursor-pointer transition-all duration-200 hover:translate-x-0.5 border-b border-secondary-100 dark:border-dark-border last:border-b-0"
-            :class="{'bg-primary-50/30 dark:bg-primary-900/10': !notification.read}"
-          >
-            <div class="flex gap-3">
-              <!-- Icon -->
-              <div class="flex-shrink-0">
-                <div :class="[getTypeColor(notification.type), 'w-10 h-10 rounded-full flex items-center justify-center']">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" :d="getTypeIcon(notification.type)" clip-rule="evenodd" />
-                  </svg>
-                </div>
-              </div>
+        <div class="max-h-[400px] overflow-y-auto w-full relative">
+          <!-- Loading overlay -->
+          <div v-if="store.loading && store.notificacoes.length === 0" class="flex flex-col items-center justify-center py-10">
+            <svg class="animate-spin h-6 w-6 text-primary-500 mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            <span class="text-sm text-gray-500">Carregando...</span>
+          </div>
 
-              <!-- Content -->
-              <div class="flex-1 min-w-0">
-                <div class="flex items-start justify-between gap-2">
-                  <h4 class="text-sm font-semibold text-secondary-900 dark:text-dark-text">
-                    {{ notification.title }}
-                  </h4>
-                  <span 
-                    v-if="!notification.read" 
-                    class="w-2 h-2 bg-primary-500 rounded-full flex-shrink-0 mt-1"
-                  ></span>
+          <!-- Empty State -->
+          <div v-else-if="store.notificacoes.length === 0" class="px-4 py-10 text-center">
+             <div class="mx-auto w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-3">
+               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+               </svg>
+             </div>
+             <p class="text-sm text-gray-500 dark:text-gray-400">Nenhuma notificação no momento.</p>
+          </div>
+
+          <!-- List -->
+          <template v-else>
+            <div 
+              v-for="notification in store.notificacoes" 
+              :key="notification.id"
+              @click="markAsRead(notification.id)"
+              class="px-4 py-3 hover:bg-secondary-50 dark:hover:bg-dark-bg cursor-pointer transition-all duration-200 border-b border-secondary-100 dark:border-dark-border last:border-b-0 group"
+              :class="!notification.lida ? 'bg-primary-50/40 dark:bg-primary-900/10 border-l-4 border-l-primary-500' : 'bg-transparent border-l-4 border-l-transparent opacity-90'"
+            >
+              <div class="flex gap-3">
+                <!-- Icon -->
+                <div class="flex-shrink-0 mt-0.5">
+                  <div :class="[getTypeColor(notification.tipo), 'w-8 h-8 rounded-full flex items-center justify-center']">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="getTypeIcon(notification.tipo)" />
+                    </svg>
+                  </div>
                 </div>
-                <p class="text-sm text-secondary-600 dark:text-secondary-400 mt-1">
-                  {{ notification.message }}
-                </p>
-                <p class="text-xs text-secondary-500 dark:text-secondary-500 mt-2">
-                  {{ notification.time }}
-                </p>
+
+                <!-- Content -->
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-start justify-between gap-2">
+                    <h4 class="text-sm font-semibold text-secondary-900 dark:text-dark-text group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                      {{ notification.titulo }}
+                    </h4>
+                    <span 
+                      v-if="!notification.lida" 
+                      class="w-2 h-2 bg-primary-500 rounded-full flex-shrink-0 mt-1"
+                    ></span>
+                  </div>
+                  <p class="text-[13px] text-secondary-600 dark:text-secondary-400 mt-0.5 leading-snug">
+                    {{ notification.mensagem }}
+                  </p>
+                  <p class="text-[11px] font-medium text-secondary-400 dark:text-secondary-500 mt-1.5 flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    {{ formatTime(notification.created_at) }}
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
+          </template>
         </div>
 
         <!-- Footer -->
-        <div class="px-4 py-3 bg-secondary-50 dark:bg-dark-bg border-t border-secondary-100 dark:border-dark-border">
-          <NuxtLink 
-            to="/notificacoes" 
-            @click="close"
-            class="text-sm font-medium text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors flex items-center justify-center gap-1"
-          >
-            Ver todas as notificações
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-            </svg>
-          </NuxtLink>
+        <div class="px-4 py-2.5 bg-secondary-50 dark:bg-dark-bg border-t border-secondary-100 dark:border-dark-border flex justify-center">
+          <span class="text-xs text-gray-400 font-medium">Você está atualizado!</span>
         </div>
       </div>
     </transition>

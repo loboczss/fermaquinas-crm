@@ -116,3 +116,14 @@ export interface IProduto {
   QTDATUALESTOQUE: string | null
   VALTOTAL: string | null
 }
+
+export interface INotificacao {
+  id: number
+  user_id: string
+  tipo: 'venda' | 'aniversario'
+  titulo: string
+  mensagem: string
+  referencia_id: string | null
+  lida: boolean
+  created_at: string
+}

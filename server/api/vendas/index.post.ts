@@ -32,5 +32,49 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 500, message: error.message })
   }
 
+  // --- Início: Criação de Notificações ---
+  try {
+    const { data: masters } = await client
+      .from('profiles')
+      .select('user_id')
+      .eq('role', 'master')
+
+    const notificacoes = []
+    const valorVenda = Number(payload.valor_venda || 0)
+    const clienteNome = payload.contact_name || 'Cliente Desconhecido'
+    const vendaId = data.id
+
+    // Para cada master
+    for (const master of (masters || [])) {
+      notificacoes.push({
+        user_id: master.user_id,
+        tipo: 'venda',
+        titulo: 'Nova venda registrada',
+        mensagem: `Venda de R$ ${valorVenda.toFixed(2).replace('.', ',')} para ${clienteNome}`,
+        referencia_id: String(vendaId),
+      })
+    }
+
+    // Para o vendedor (se não for master)
+    const vendedorEhMaster = masters?.some(m => m.user_id === user.id)
+    if (!vendedorEhMaster) {
+      notificacoes.push({
+        user_id: user.id,
+        tipo: 'venda',
+        titulo: 'Venda registrada com sucesso',
+        mensagem: `Sua venda de R$ ${valorVenda.toFixed(2).replace('.', ',')} para ${clienteNome} foi registrada`,
+        referencia_id: String(vendaId),
+      })
+    }
+
+    if (notificacoes.length > 0) {
+      // Fire and forget, não afeta a resposta
+      await client.from('notificacoes').insert(notificacoes)
+    }
+  } catch (notifError) {
+    console.error('[API vendas/index.post] Erro ao criar notificações:', notifError)
+  }
+  // --- Fim: Criação de Notificações ---
+
   return data
 })

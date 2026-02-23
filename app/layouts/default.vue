@@ -2,12 +2,16 @@
 import AppHeader from '~/components/AppHeader.vue'
 import { useAuthStore } from '~/stores/useAuthStore'
 import { useProfileStore } from '~/stores/profile'
-import { onMounted } from 'vue'
+import { useNotificacoesStore } from '~/stores/useNotificacoesStore'
+import { onMounted, onUnmounted } from 'vue'
 
 const route = useRoute()
 const user = useSupabaseUser()
 const authStore = useAuthStore()
 const profileStore = useProfileStore()
+const notificacoesStore = useNotificacoesStore()
+
+let pollingInterval: NodeJS.Timeout
 
 // Função para carregar o perfil completo
 const loadUserProfile = async () => {
@@ -59,7 +63,30 @@ onMounted(async () => {
       await loadUserProfile()
     }
   }, 500)
+
+  // -- SISTEMA DE NOTIFICAÇÕES --
+  // Ao montar, carrega notificações iniciais se autenticado
+  if (user.value?.id) {
+    notificacoesStore.fetchNotificacoes()
+    
+    // Verifica aniversários uma vez no início
+    try {
+      await notificacoesStore.verificarAniversarios()
+    } catch (e) {
+      console.warn('[Layout] Erro silencioso verificar aniversários', e)
+    }
+
+    // Iniciar polling de notificações
+    pollingInterval = setInterval(() => {
+      notificacoesStore.fetchNotificacoes()
+    }, 60000) // 1 min
+  }
 })
+
+onUnmounted(() => {
+  if (pollingInterval) clearInterval(pollingInterval)
+})
+
 
 // Quando rota muda, garantir que perfil está carregado
 watch(() => route.path, async () => {
