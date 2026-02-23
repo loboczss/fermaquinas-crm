@@ -124,24 +124,24 @@ const confirmDelete = async () => {
                 </td>
                 <td v-if="authStore.isMaster" class="whitespace-nowrap px-3 py-4 text-right text-sm font-medium sm:pr-6 whitespace-nowrap">
                   <div class="flex justify-end gap-1">
-                    <button 
+                    <BaseIconButton 
                       @click="openEditModal(produto)"
-                      class="p-2 text-primary-600 hover:bg-primary-50 dark:text-primary-400 dark:hover:bg-primary-950/30 rounded-lg transition-colors"
+                      variant="primary"
                       title="Editar produto"
                     >
                       <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                       </svg>
-                    </button>
-                    <button 
+                    </BaseIconButton>
+                    <BaseIconButton 
                       @click="openDeleteConfirm(produto)"
-                      class="p-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30 rounded-lg transition-colors"
+                      variant="danger"
                       title="Excluir produto"
                     >
                       <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                       </svg>
-                    </button>
+                    </BaseIconButton>
                   </div>
                 </td>
               </tr>
@@ -162,54 +162,58 @@ const confirmDelete = async () => {
           </div>
           <div>
             <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-              <button 
+              <BaseButton 
                 @click="store.setPage(store.page - 1)"
                 :disabled="store.page === 1"
+                variant="outline"
                 class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <span class="sr-only">Anterior</span>
                 <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                   <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
                 </svg>
-              </button>
+              </BaseButton>
               
               <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300">
                 Página {{ store.page }} de {{ store.totalPages || 1 }}
               </span>
               
-              <button 
+              <BaseButton 
                 @click="store.setPage(store.page + 1)"
                 :disabled="store.page >= store.totalPages || store.totalPages === 0"
+                variant="outline"
                 class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <span class="sr-only">Próximo</span>
                 <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                   <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
                 </svg>
-              </button>
+              </BaseButton>
             </nav>
           </div>
         </div>
         
         <!-- Mobile Pagination -->
         <div class="flex items-center justify-between w-full sm:hidden">
-          <button 
+          <BaseButton 
             @click="store.setPage(store.page - 1)"
             :disabled="store.page === 1"
-            class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-700 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
+            variant="outline"
+            class="relative inline-flex items-center px-4 py-2 text-sm font-medium"
           >
             Anterior
-          </button>
+          </BaseButton>
           <span class="text-sm text-gray-700 dark:text-gray-300">
            {{ store.page }} / {{ store.totalPages || 1 }}
           </span>
-          <button 
+          <BaseButton 
             @click="store.setPage(store.page + 1)"
             :disabled="store.page >= store.totalPages || store.totalPages === 0"
-            class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-700 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
+            variant="outline"
+            class="relative inline-flex items-center px-4 py-2 text-sm font-medium"
           >
             Próximo
-          </button>
+          </BaseButton>
         </div>
       </div>
     </div>
@@ -249,23 +253,25 @@ const confirmDelete = async () => {
               </p>
               
               <div class="flex gap-3 w-full">
-                <button 
+                <BaseButton 
                   @click="showDeleteConfirm = false"
-                  class="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  variant="outline"
+                  class="flex-1"
                 >
                   Cancelar
-                </button>
-                <button 
+                </BaseButton>
+                <BaseButton 
                   @click="confirmDelete"
                   :disabled="deleteLoading"
-                  class="flex-1 px-4 py-3 rounded-xl bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white text-sm font-bold shadow-lg shadow-red-500/20 transition-all flex items-center justify-center gap-2"
+                  variant="danger"
+                  class="flex-1 flex items-center justify-center gap-2"
                 >
                   <svg v-if="deleteLoading" class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
                   <span>{{ deleteLoading ? 'Excluindo...' : 'Sim, Excluir' }}</span>
-                </button>
+                </BaseButton>
               </div>
             </div>
           </div>

@@ -88,25 +88,24 @@ const handleSave = async () => {
               <h3 class="text-xl font-bold text-gray-900 dark:text-white">Editar Produto</h3>
               <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">ID: {{ form.IDPRODUTO }} <span v-if="form.IDSUBPRODUTO">/ Sub: {{ form.IDSUBPRODUTO }}</span></p>
             </div>
-            <button 
+            <BaseIconButton 
               @click="emit('close')"
-              class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+              variant="ghost"
+              class="rounded-full"
             >
               <svg class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
               </svg>
-            </button>
+            </BaseIconButton>
           </div>
 
           <!-- Form -->
           <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar">
             <!-- Descrição -->
             <div>
-              <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">Descrição</label>
-              <input 
+              <BaseInput 
                 v-model="form.DESCRICAO"
-                type="text" 
-                class="w-full bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary-500 transition-all outline-none text-gray-900 dark:text-white"
+                label="Descrição"
                 placeholder="Ex: PAR DE LUVAS DE COURO"
               />
             </div>
@@ -114,20 +113,16 @@ const handleSave = async () => {
             <div class="grid grid-cols-2 gap-4">
               <!-- Modelo -->
               <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">Modelo</label>
-                <input 
+                <BaseInput 
                   v-model="form.MODELO"
-                  type="text" 
-                  class="w-full bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary-500 outline-none text-gray-900 dark:text-white"
+                  label="Modelo"
                 />
               </div>
               <!-- Embalagem -->
               <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">Embalagem</label>
-                <input 
+                <BaseInput 
                   v-model="form.EMBALAGEMSAIDA"
-                  type="text" 
-                  class="w-full bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary-500 outline-none text-gray-900 dark:text-white"
+                  label="Embalagem"
                 />
               </div>
             </div>
@@ -135,21 +130,18 @@ const handleSave = async () => {
             <div class="grid grid-cols-2 gap-4">
               <!-- Preço -->
               <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">Preço Varejo (R$)</label>
-                <input 
+                <BaseInput 
                   v-model="form.VALPRECOVAREJO"
-                  type="text" 
-                  class="w-full bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-sm font-mono focus:ring-2 focus:ring-primary-500 outline-none text-gray-900 dark:text-white"
+                  label="Preço Varejo (R$)"
                   placeholder="0.00"
+                  class="font-mono"
                 />
               </div>
               <!-- Estoque -->
               <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">Qtd. Estoque</label>
-                <input 
+                <BaseInput 
                   v-model="form.QTDATUALESTOQUE"
-                  type="text" 
-                  class="w-full bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary-500 outline-none text-gray-900 dark:text-white"
+                  label="Qtd. Estoque"
                 />
               </div>
             </div>
@@ -157,23 +149,25 @@ const handleSave = async () => {
 
           <!-- Footer Actions -->
           <div class="p-6 border-t border-gray-100 dark:border-gray-800 flex gap-3 bg-gray-50/50 dark:bg-gray-800/30">
-            <button 
+            <BaseButton 
               @click="emit('close')"
-              class="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              variant="outline"
+              class="flex-1"
             >
               Cancelar
-            </button>
-            <button 
+            </BaseButton>
+            <BaseButton 
               @click="handleSave"
               :disabled="loading"
-              class="flex-1 px-4 py-3 rounded-xl bg-primary-600 hover:bg-primary-500 disabled:opacity-50 text-white text-sm font-bold shadow-lg shadow-primary-500/20 transition-all flex items-center justify-center gap-2"
+              variant="primary"
+              class="flex-1 flex items-center justify-center gap-2"
             >
               <svg v-if="loading" class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
               <span>{{ loading ? 'Salvando...' : 'Salvar Alterações' }}</span>
-            </button>
+            </BaseButton>
           </div>
         </div>
       </div>

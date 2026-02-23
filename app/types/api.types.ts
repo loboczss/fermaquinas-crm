@@ -32,6 +32,7 @@ export interface IVenda {
   contact_name: string | null
   vendedor: string | null
   produtos: string | null
+  produtos_json?: any[]
   deleted_at: string | null
   deleted_by: string | null
   vendedor_id: string | null

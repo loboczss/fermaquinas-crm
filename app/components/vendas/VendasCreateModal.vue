@@ -195,6 +195,12 @@ const handleSave = async () => {
       valor_venda: Number(totalVenda.value.toFixed(2)),
       produtos: produtosString,
       vendedor: formData.value.vendedor || undefined,
+      produtos_json: formData.value.produtos_json.map(item => ({
+        IDPRODUTO: item.produto.IDPRODUTO,
+        quantidade: item.quantidade,
+        precoUnitario: item.precoUnitario,
+        subtotal: item.subtotal
+      })),
     })
 
     resetForm()
@@ -279,14 +285,15 @@ onMounted(() => {
                     <p class="text-xs text-slate-500 dark:text-slate-400">Vincule um cliente, adicione produtos e finalize.</p>
                   </div>
                 </div>
-                <button
+                <BaseButton
                   @click="handleClose"
                   type="button"
                   aria-label="Fechar modal"
-                  class="flex-shrink-0 h-8 w-8 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center transition-colors"
+                  variant="secondary"
+                  class="flex-shrink-0 h-8 w-8 !p-0 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                 >
                   <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-                </button>
+                </BaseButton>
               </div>
             </div>
 
@@ -420,19 +427,18 @@ onMounted(() => {
 
                   <!-- Add Button -->
                   <div class="mt-4 flex justify-end">
-                    <button
+                    <BaseButton
                       id="btn-add-produto"
                       @click="addProductToList"
                       type="button"
-                      class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm border-2 border-dashed transition-colors"
-                      :class="currentProduct
-                        ? 'border-accent-400 text-accent-600 dark:text-accent-400 hover:bg-accent-50 dark:hover:bg-accent-900/20'
-                        : 'border-slate-300 dark:border-slate-600 text-slate-400 cursor-not-allowed'"
+                      variant="outline"
+                      class="border-dashed"
+                      :class="currentProduct ? 'border-accent-400 text-accent-600 dark:text-accent-400 hover:bg-accent-50 dark:hover:bg-accent-900/20' : ''"
                       :disabled="!currentProduct"
                     >
-                      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
+                      <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
                       Adicionar Produto
-                    </button>
+                    </BaseButton>
                   </div>
                 </div>
 
@@ -477,14 +483,15 @@ onMounted(() => {
                             {{ item.quantidade }}x · {{ formatCurrency(item.precoUnitario) }}/un · Subtotal: <span class="font-bold text-slate-700 dark:text-slate-200">{{ formatCurrency(item.subtotal) }}</span>
                           </p>
                         </div>
-                        <button
+                        <BaseButton
                           @click="removeProduct(idx)"
                           type="button"
                           aria-label="Remover produto"
-                          class="flex-shrink-0 p-1.5 rounded-lg text-slate-300 dark:text-slate-600 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                          variant="secondary"
+                          class="flex-shrink-0 !p-1.5 text-slate-300 dark:text-slate-600 hover:text-red-500 dark:hover:text-red-400"
                         >
                           <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                        </button>
+                        </BaseButton>
                       </div>
                     </div>
                   </TransitionGroup>
@@ -537,30 +544,30 @@ onMounted(() => {
             <!-- ═══ FOOTER (sticky) ═══ -->
             <div id="venda-modal-footer" class="flex-shrink-0 border-t border-slate-200 dark:border-slate-700/50 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-sm px-5 sm:px-6 py-4">
               <div class="flex flex-col-reverse sm:flex-row sm:justify-between sm:items-center gap-3">
-                <button
+                <BaseButton
                   id="btn-cancel"
                   @click="handleClose"
                   type="button"
-                  class="px-6 py-3 rounded-xl font-medium text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-center"
+                  variant="secondary"
                 >
                   Cancelar
-                </button>
-                <button
+                </BaseButton>
+                <BaseButton
                   id="btn-save"
                   @click="handleSave"
                   type="button"
-                  :disabled="isSubmitting"
-                  class="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-bold text-sm text-white bg-accent-600 hover:bg-accent-700 shadow-lg shadow-accent-500/25 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                  :class="{ 'opacity-60': !formData.contato_id || formData.produtos_json.length === 0 }"
+                  :disabled="isSubmitting || !formData.contato_id || formData.produtos_json.length === 0"
+                  variant="primary"
+                  class="bg-accent-600 hover:bg-accent-700 shadow-lg shadow-accent-500/25"
                 >
-                  <svg v-if="isSubmitting" class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" /><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" /></svg>
-                  <svg v-else class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" /></svg>
+                  <svg v-if="isSubmitting" class="animate-spin h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" /><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" /></svg>
+                  <svg v-else class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" /></svg>
                   <template v-if="isSubmitting">Salvando...</template>
                   <template v-else>
                     Finalizar Venda
                     <span v-if="totalVenda > 0" class="ml-1 opacity-80">· {{ formatCurrency(totalVenda) }}</span>
                   </template>
-                </button>
+                </BaseButton>
               </div>
             </div>
           </div>

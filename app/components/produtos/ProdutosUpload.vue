@@ -82,17 +82,18 @@ const uploadFile = async () => {
     />
 
     <!-- Estado 1: Botão Padrão para Iniciar a Escolha -->
-    <button 
+    <BaseButton 
       v-if="!selectedFile && !loading"
       @click="triggerFileInput"
-      class="flex items-center gap-2 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 px-3 py-2 rounded-xl text-sm font-medium shadow-sm transition-colors focus:ring-2 focus:ring-primary-500"
+      variant="outline"
+      class="flex items-center gap-2"
       title="O upload sobreescreve todos os produtos atuais com os arquivos da planilha"
     >
       <svg class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
       </svg>
-      Atualizar Produtos
-    </button>
+      Importar Produtos
+    </BaseButton>
 
     <!-- Estado 2 e 3: Arquivo Selecionado e Botão de Envio/Loader -->
     <div v-else class="flex flex-col sm:flex-row items-center gap-2 bg-gray-50 dark:bg-gray-800/80 p-2 rounded-xl border border-gray-200 dark:border-gray-700">
@@ -109,31 +110,24 @@ const uploadFile = async () => {
 
       <div class="flex items-center gap-1 w-full sm:w-auto mt-2 sm:mt-0">
          <!-- Botão Cancela -->
-        <button 
+        <BaseButton 
           v-if="!loading"
           @click="cancelSelection"
-          class="flex-1 sm:flex-none justify-center px-2 py-1.5 text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
+          variant="outline"
+          class="!py-1.5 !px-3 text-xs"
         >
           Cancelar
-        </button>
+        </BaseButton>
 
         <!-- Botão Enviar com Loader -->
-        <button 
+        <BaseButton 
           @click="uploadFile"
-          :disabled="loading"
-          class="flex-1 sm:flex-none flex items-center justify-center gap-1.5 bg-primary-600 hover:bg-primary-500 text-white px-3 py-1.5 rounded-lg text-sm font-semibold shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          :loading="loading"
+          variant="primary"
+          class="!py-1.5 !px-3 text-xs"
         >
-          <template v-if="loading">
-             <svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            Atualizando...
-          </template>
-          <template v-else>
-            Atualizar Base
-          </template>
-        </button>
+          Atualizar Base
+        </BaseButton>
       </div>
 
     </div>

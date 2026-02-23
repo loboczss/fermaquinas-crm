@@ -24,12 +24,12 @@ onMounted(() => {
             Gestão do faturamento e histórico completo das compras dos clientes.
           </p>
         </div>
-        <button @click="store.abrirCriacao()" class="mt-4 sm:mt-0 flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-500 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600">
+        <BaseButton @click="store.abrirCriacao()" variant="primary" class="mt-4 sm:mt-0 flex items-center justify-center gap-2 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600">
           <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
             <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
           </svg>
           Nova Venda
-        </button>
+        </BaseButton>
       </div>
 
       <!-- Main Content -->
@@ -43,20 +43,22 @@ onMounted(() => {
           Mostrando {{ (store.currentPage - 1) * store.itemsPerPage + 1 }} a {{ Math.min(store.currentPage * store.itemsPerPage, store.totalItems) }} de {{ store.totalItems }} vendas
         </span>
         <div class="flex gap-2">
-          <button 
+          <BaseButton 
             @click="store.currentPage--; store.fetchVendas()" 
             :disabled="store.currentPage === 1"
-            class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
+            variant="outline"
+            class="text-sm font-medium"
           >
             Anterior
-          </button>
-          <button 
+          </BaseButton>
+          <BaseButton 
             @click="store.currentPage++; store.fetchVendas()" 
             :disabled="store.currentPage * store.itemsPerPage >= store.totalItems"
-            class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
+            variant="outline"
+            class="text-sm font-medium"
           >
             Próximo
-          </button>
+          </BaseButton>
         </div>
       </div>
     </div>
