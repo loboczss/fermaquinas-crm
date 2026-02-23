@@ -24,7 +24,7 @@ watchEffect(() => {
   </div>
 </template>
 
-<style>
+<style lang="postcss">
 .page-enter-active,
 .page-leave-active {
   @apply transition-all duration-300 ease-out;

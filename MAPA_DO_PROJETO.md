@@ -25,7 +25,7 @@
 │  │              API Routes (server/api/)                 │  │
 │  │  • /api/auth/role       • /api/crm/*                 │  │
 │  │  • /api/vendas/*        • /api/dashboard/*           │  │
-│  │  • /api/perfil/*        • /api/workspaces/*          │  │
+│  │  • /api/perfil/*        • /api/produtos/*            │  │
 │  └───────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────┘
                           ↕ Supabase Client
@@ -96,15 +96,9 @@ fermaquinas-crm/
 │   │   │   ├── ChatModal.vue       # Modal do Chat WhatsApp
 │   │   │   └── ContactList.vue     # Lista de contatos recentes
 │   │   │
-│   │   ├── 📂 perfil/              # Componentes de perfil
-│   │   │   ├── PerfilForm.vue
-│   │   │   └── AlterarSenhaForm.vue
-│   │   │
-│   │   └── 📂 workspaces/          # Componentes workspaces
-│   │       ├── WorkspaceCard.vue
-│   │       ├── WorkspaceCardAdd.vue
-│   │       ├── WorkspaceGrid.vue
-│   │       └── ModalAddWorkspace.vue
+│   │   └── 📂 perfil/              # Componentes de perfil
+│   │       ├── PerfilForm.vue
+│   │       └── AlterarSenhaForm.vue
 │   │
 │   ├── 📂 composables/             # Lógica reutilizável
 │   │   ├── useAuth.ts              # Autenticação Supabase
@@ -117,13 +111,12 @@ fermaquinas-crm/
 │   │   ├── useCrmStore.ts          # Estado CRM (clientes)
 │   │   ├── useVendasStore.ts       # Estado vendas
 │   │   ├── useChatDashboard.ts     # Estado dashboard
-│   │   ├── workspaces.ts           # Estado workspaces
 │   │   └── profile.ts              # Estado perfil
 │   │
 │   ├── 📂 pages/                   # Páginas/Rotas da aplicação
-│   │   ├── index.vue               # / - Workspaces (home)
+│   │   ├── index.vue               # / - Raiz (Redireciona p/ dashboard)
 │   │   ├── login.vue               # /login
-│   │   ├── dashboard.vue           # /dashboard - Chat & Métricas
+│   │   ├── dashboard.vue           # /dashboard - Módulo principal de métricas
 │   │   ├── crm.vue                 # /crm - Gestão clientes
 │   │   ├── vendas.vue              # /vendas - Histórico vendas
 │   │   ├── produtos.vue            # /produtos - Módulo de produtos
@@ -158,6 +151,10 @@ fermaquinas-crm/
 │       ├── 📂 auth/                # Autenticação & RBAC
 │       │   └── role.get.ts         # GET /api/auth/role
 │       │
+│       ├── 📂 perfil/              # Perfil e Sessão
+│       │   ├── me.get.ts           # GET /api/perfil/me
+│       │   └── me.put.ts           # PUT /api/perfil/me
+│       │
 │       ├── 📂 crm/                 # API CRM
 │       │   ├── index.get.ts        # GET /api/crm (listar + paginação)
 │       │   ├── index.post.ts       # POST /api/crm (criar)
@@ -178,17 +175,13 @@ fermaquinas-crm/
 │       │
 │       ├── 📂 produtos/            # API Produtos
 │       │   ├── index.get.ts        # GET /api/produtos (lista)
+│       │   ├── index.put.ts        # PUT /api/produtos (editar)
 │       │   ├── index.delete.ts     # DELETE /api/produtos (individual)
 │       │   ├── search.get.ts       # GET /api/produtos/search (ID/Descrição)
 │       │   └── upload.post.ts      # POST /api/produtos/upload (XLSX)
 │       │
-│       ├── 📂 dropbox/             # API Integração Dropbox
-│       │   └── upload.post.ts      # POST /api/dropbox/upload (avatars)
-│       │
-│       └── 📂 workspaces/          # API Workspaces
-│           ├── index.get.ts        # GET /api/workspaces
-│           ├── index.post.ts       # POST /api/workspaces
-│           └── [id].delete.ts      # DELETE /api/workspaces/:id
+│       └── 📂 dropbox/             # API Integração Dropbox
+│           └── upload.post.ts      # POST /api/dropbox/upload (avatars)
 │
 ├── 📂 public/                      # Assets estáticos
 │   ├── logo.png                    # ⭐ Logo Fermaquinas
@@ -212,7 +205,7 @@ fermaquinas-crm/
   - `primary`: Amarelo Ouro (#FFCC00) - Cor da marca
   - `accent`: Laranja Tijolo (#D26034) - Detalhes e CTAs
   - `secondary`: Tons de cinza/slate - Textos e fundos
-- **Logo:** `/public/logo.png` (Fermaquinas)
+- **Logo/Favicon:** `/public/logo.png` (Fermaquinas)
 - **Dark Mode:** Suportado via `useDarkMode` composable
 
 ### **Arquitetura de Dados (Fluxo)**
@@ -322,17 +315,6 @@ type UserRole = 'master' | 'vendedor'
 └──────────────────────────────┘
 
 ┌──────────────────────────────┐
-│   workspaces         │
-├──────────────────────┤
-│ id (bigint)          │
-│ user_id (UUID) FK    │ → auth.users.id
-│ nome (text)          │
-│ cor (text)           │
-│ icone (text)         │
-│ created_at           │
-└──────────────────────┘
-
-┌──────────────────────────────┐
 │   produtos           │ (Catálogo Automotivo)
 ├──────────────────────────────┤
 │ IDPRODUTO (bigint)   │ → ID numérico
@@ -351,11 +333,11 @@ type UserRole = 'master' | 'vendedor'
 
 ## 🧩 Principais Funcionalidades
 
-### 1️⃣ **Dashboard** (`/dashboard`)
-- KPIs: Vendas totais, ticket médio, conversão
+### 1️⃣ **Dashboard** (`/dashboard` - Página Principal)
+- KPIs: Vendas totais, ticket médio, conversão (Visibilidade Global)
 - Gráficos: Linha (vendas no tempo), Barra (vendas/vendedor)
 - Chat: Lista contatos únicos + área mensagens
-- Filtros: Master vê todos, Vendedor vê só seus dados
+- Filtros: Resultados **globais** da empresa para todos os níveis de acesso (Master e Vendedores)
 
 **Stores:** `useChatDashboard`  
 **API:** `/api/dashboard/metrics`, `/api/dashboard/contatos`, `/api/dashboard/mensagens`
@@ -398,21 +380,13 @@ type UserRole = 'master' | 'vendedor'
 ---
 
 ### 5️⃣ **Perfil** (`/perfil`)
-- Editar dados pessoais
+- Editar dados pessoais (Nome, Foto via Dropbox, E-mail)
+- Troca/Inclusão de Avatar persistente
 - Alterar senha
 - Exibição do role (Master/Vendedor)
 
+**Stores:** `useProfileStore`
 **API:** `/api/perfil/me` (GET/PUT)
-
----
-
-### 6️⃣ **Workspaces** (`/`)
-- Grid de workspaces do usuário
-- Criar novos workspaces
-- Deletar workspaces
-
-**Stores:** `workspaces`  
-**API:** `/api/workspaces/*`
 
 ---
 
@@ -457,15 +431,15 @@ type UserRole = 'master' | 'vendedor'
 | GET | `/api/vendas` | ✅ | ✅ Master/Vendedor | Lista vendas (filtrado) |
 | POST | `/api/vendas` | ✅ | - | Criar venda |
 | **Dashboard** |
-| GET | `/api/dashboard/metrics` | ✅ | ✅ Master/Vendedor | KPIs e métricas |
+| GET | `/api/dashboard/metrics` | ✅ | - | KPIs e métricas globais para todos |
 | GET | `/api/dashboard/contatos` | ✅ | ✅ Master/Vendedor | Contatos únicos |
 | GET | `/api/dashboard/mensagens` | ✅ | - | Mensagens de um contato |
 | **Arquivos (Dropbox)** |
 | POST | `/api/dropbox/upload` | ✅ | - | Upload de avatares/mídias |
-| DELETE | `/api/workspaces/:id` | ✅ | - | Deletar workspace |
 | **Produtos** |
 | GET | `/api/produtos` | ✅ | - | Lista produtos paginado |
 | GET | `/api/produtos/search` | ✅ | - | Busca por texto ou ID |
+| PUT | `/api/produtos` | ✅ | ✅ Master | Editar produto individual |
 | POST | `/api/produtos/upload` | ✅ | ✅ Master | Importar XLSX (Delete All + Insert) |
 | DELETE | `/api/produtos` | ✅ | ✅ Master | Exclusão pontual de produto |
 
@@ -568,8 +542,8 @@ export default defineEventHandler(async (event) => {
 
 **Desenvolvedor:** Loboczss
 **Projeto:** Fermaquinas Materiais para Construção CRM  
-**Última Atualização:** 22 de Fevereiro de 2026 (Inclusão Módulo Produtos/XLSX)
+**Última Atualização:** 22 de Fevereiro de 2026 (Inclusão Dashboard Global, Correções de RBAC Master e Edição de Produtos)
 
 ---
 
-**🎉 Este mapa reflete o estado atual do projeto após a implementação do Módulo de Produtos com atualização via XLSX e controle RBAC!**
+**🎉 Este mapa reflete o estado atual do projeto após a implementação da visibilidade global, bloqueio de workspaces, gestão do avatar e permissões absolutas de Master no CRM!**
