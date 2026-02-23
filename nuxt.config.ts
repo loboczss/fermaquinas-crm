@@ -36,5 +36,7 @@ export default defineNuxtConfig({
     dropboxClientId: process.env.DROPBOX_CLIENT_ID || '',
     dropboxClientSecret: process.env.DROPBOX_CLIENT_SECRET || '',
     dropboxRefreshToken: process.env.DROPBOX_REFRESH_TOKEN || '',
+    resendApiKey: process.env.RESEND_API_KEY || '',
+    mailerSenderEmail: process.env.MAILER_SENDER_EMAIL || '',
   }
 })

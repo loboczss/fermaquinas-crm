@@ -76,7 +76,7 @@ export default defineEventHandler(async (event) => {
   }
   // --- Fim: Dedução de Estoque ---
 
-  // --- Início: Criação de Notificações ---
+  // --- Início: Criação de Notificações (Banco de Dados) ---
   try {
     const serviceClient = serverSupabaseServiceRole(event)
     const { data: masters } = await serviceClient
@@ -113,13 +113,82 @@ export default defineEventHandler(async (event) => {
     }
 
     if (notificacoes.length > 0) {
-      // Fire and forget, não afeta a resposta
+      // Fire and forget
       await client.from('notificacoes').insert(notificacoes)
     }
   } catch (notifError) {
-    console.error('[API vendas/index.post] Erro ao criar notificações:', notifError)
+    console.error('[API vendas/index.post] Erro ao criar notificações no banco:', notifError)
   }
   // --- Fim: Criação de Notificações ---
+
+  // --- Início: Envio de E-mails (Resend) ---
+  // Executado de forma assíncrona (não aguarda o envio para retornar a resposta)
+  try {
+    const serviceClient = serverSupabaseServiceRole(event)
+
+    // 1. Buscar emails de todos os masters
+    const { data: mastersData } = await serviceClient
+      .from('profiles')
+      .select('user_id')
+      .eq('role', 'master')
+
+    const masterUserIds = (mastersData || []).map(m => m.user_id)
+
+    // Para obter os emails, precisamos usar a Admin API do Supabase (service role)
+    const { data: { users: allUsers } } = await serviceClient.auth.admin.listUsers()
+
+    const masterEmails = allUsers
+      .filter(u => masterUserIds.includes(u.id))
+      .map(u => u.email)
+      .filter((e): e is string => !!e)
+
+    const vendedorEmail = user.email
+
+    const valorVenda = Number(payload.valor_venda || 0)
+    const clienteNome = payload.contact_name || 'Cliente Desconhecido'
+    const produtosText = payload.produtos || ''
+
+    // 2. Enviar email para o vendedor
+    if (vendedorEmail) {
+      sendEmail({
+        to: vendedorEmail,
+        subject: `✅ Venda Confirmada - ${clienteNome}`,
+        html: `
+          <div style="font-family: sans-serif; color: #333;">
+            <h2 style="color: #10b981;">Sua venda foi registrada!</h2>
+            <p>Olá <strong>${payload.vendedor}</strong>,</p>
+            <p>Sua venda para o cliente <strong>${clienteNome}</strong> de <strong>R$ ${valorVenda.toFixed(2).replace('.', ',')}</strong> foi processada com sucesso.</p>
+            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+            <p style="font-size: 14px; color: #666;">Produtos: ${produtosText}</p>
+          </div>
+        `
+      })
+    }
+
+    // 3. Enviar email para os masters (se houver algum master que não seja o próprio vendedor)
+    const otherMasterEmails = masterEmails.filter(e => e !== vendedorEmail)
+
+    if (otherMasterEmails.length > 0) {
+      sendEmail({
+        to: otherMasterEmails,
+        subject: `💰 Nova Venda Registrada - R$ ${valorVenda.toFixed(2).replace('.', ',')}`,
+        html: `
+          <div style="font-family: sans-serif; color: #333;">
+            <h2 style="color: #6366f1;">Alerta de Nova Venda</h2>
+            <p>O vendedor <strong>${payload.vendedor}</strong> acabou de registrar uma nova venda.</p>
+            <p><strong>Cliente:</strong> ${clienteNome}</p>
+            <p><strong>Valor:</strong> R$ ${valorVenda.toFixed(2).replace('.', ',')}</p>
+            <p><strong>Produtos:</strong> ${produtosText}</p>
+            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+            <a href="https://fermaquinas.cloud/vendas" style="display: inline-block; padding: 10px 20px; background-color: #f59e0b; color: #fff; text-decoration: none; border-radius: 8px; font-weight: bold;">Ver no Sistema</a>
+          </div>
+        `
+      })
+    }
+  } catch (emailError) {
+    console.error('[API vendas/index.post] Erro ao disparar e-mails:', emailError)
+  }
+  // --- Fim: Envio de E-mails ---
 
   return data
 })
