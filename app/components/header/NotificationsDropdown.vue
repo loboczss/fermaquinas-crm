@@ -95,7 +95,7 @@ onMounted(() => {
     >
       <div 
         v-if="isOpen" 
-        class="absolute right-0 mt-2 w-96 bg-white dark:bg-dark-surface rounded-2xl shadow-xl shadow-black/10 dark:shadow-black/40 border border-secondary-100 dark:border-dark-border overflow-hidden z-50 text-left"
+        class="fixed inset-x-4 top-[70px] sm:absolute sm:inset-auto sm:right-0 sm:mt-2 sm:w-80 md:w-96 bg-white dark:bg-dark-surface rounded-2xl shadow-xl shadow-black/10 dark:shadow-black/40 border border-secondary-100 dark:border-dark-border overflow-hidden z-50 text-left"
       >
         <!-- Header -->
         <div class="px-4 py-3 border-b border-secondary-100 dark:border-dark-border flex items-center justify-between">
