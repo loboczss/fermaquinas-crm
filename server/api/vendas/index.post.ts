@@ -16,8 +16,11 @@ export default defineEventHandler(async (event) => {
 
   const body = await readBody(event)
 
+  // Extrair produtos_json para não causar erro de 'coluna inexistente' no Supabase
+  const { produtos_json, ...vendaData } = body
+
   const payload = {
-    ...body,
+    ...vendaData,
     vendedor_id: user.id,
     vendedor: body.vendedor || user.user_metadata?.full_name || user.email || 'Vendedor Desconhecido',
   }
@@ -31,6 +34,47 @@ export default defineEventHandler(async (event) => {
   if (error) {
     throw createError({ statusCode: 500, message: error.message })
   }
+
+  // --- Início: Dedução de Estoque ---
+  try {
+    if (body.produtos_json && Array.isArray(body.produtos_json) && body.produtos_json.length > 0) {
+      const serviceClient = serverSupabaseServiceRole(event)
+      for (const item of body.produtos_json) {
+        if (!item.IDPRODUTO || !item.quantidade) continue
+
+        // 1. Buscar estoque atual do produto
+        const { data: produto } = await serviceClient
+          .from('produtos')
+          .select('"QTDATUALESTOQUE", "IDPRODUTO", "VALPRECOVAREJO"')
+          .eq('IDPRODUTO', String(item.IDPRODUTO))
+          .single()
+
+        if (produto) {
+          // 2. Calcular novo estoque
+          const estoqueAtual = parseInt(produto.QTDATUALESTOQUE || '0', 10)
+          const novoEstoque = Math.max(0, estoqueAtual - item.quantidade) // Nunca ficar negativo
+
+          // 3. Calcular VALTOTAL (preço × novo estoque)
+          const precoStr = produto.VALPRECOVAREJO || '0'
+          const preco = parseFloat(precoStr.replace(',', '.')) || 0
+          const novoValTotal = preco * novoEstoque
+
+          // 4. Atualizar estoque e VALTOTAL na tabela
+          await serviceClient
+            .from('produtos')
+            .update({
+              QTDATUALESTOQUE: String(novoEstoque),
+              VALTOTAL: String(novoValTotal)
+            })
+            .eq('IDPRODUTO', String(item.IDPRODUTO))
+        }
+      }
+    }
+  } catch (estoqueError) {
+    console.error('[API vendas/index.post] Erro ao deduzir estoque:', estoqueError)
+    // Não repassa o erro para não quebrar a venda já realizada
+  }
+  // --- Fim: Dedução de Estoque ---
 
   // --- Início: Criação de Notificações ---
   try {
