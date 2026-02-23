@@ -31,7 +31,7 @@ export default defineEventHandler(async (event) => {
 
   const isMaster = profile?.role === 'master'
 
-  let query = client
+  let query = serviceClient
     .from('historico_vendas_fermaquinas')
     .select('*', { count: 'exact' })
     .is('deleted_at', null)

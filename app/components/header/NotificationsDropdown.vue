@@ -38,12 +38,14 @@ const markAllAsRead = async () => {
 const getTypeColor = (tipo: string) => {
   if (tipo === 'venda') return 'bg-success-100 dark:bg-success-900/30 text-success-600 dark:text-success-400'
   if (tipo === 'aniversario') return 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400'
-  return 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+  if (tipo === 'novo_cliente') return 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+  return 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
 }
 
 const getTypeIcon = (tipo: string) => {
   if (tipo === 'venda') return 'M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z' // Cart icon
-  if (tipo === 'aniversario') return 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' // Clock/Gift minimal logic (using standard icons for simplicity, but ideally a gift/cake)
+  if (tipo === 'aniversario') return 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' // Clock minimal
+  if (tipo === 'novo_cliente') return 'M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z' // User icon
   return 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
 }
 

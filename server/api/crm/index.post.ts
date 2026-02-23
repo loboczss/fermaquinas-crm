@@ -1,4 +1,4 @@
-import { serverSupabaseClient } from '#supabase/server'
+import { serverSupabaseClient, serverSupabaseServiceRole } from '#supabase/server'
 
 /**
  * POST /api/crm
@@ -34,6 +34,29 @@ export default defineEventHandler(async (event) => {
       }
       throw createError({ statusCode: 500, message: error.message })
     }
+
+    // --- Início: Criação de Notificações para Novo Cliente ---
+    try {
+      const serviceClient = serverSupabaseServiceRole(event)
+      const { data: allUsers } = await serviceClient
+        .from('profiles')
+        .select('user_id')
+
+      if (allUsers && allUsers.length > 0) {
+        const notificacoes = allUsers.map(u => ({
+          user_id: u.user_id,
+          tipo: 'novo_cliente',
+          titulo: 'Novo cliente cadastrado',
+          mensagem: `${data.nome || 'Um novo cliente'} foi adicionado ao CRM.`,
+          referencia_id: String(data.id),
+        }))
+
+        await serviceClient.from('notificacoes').insert(notificacoes)
+      }
+    } catch (notifError) {
+      console.error('[API crm/index.post] Erro ao criar notificações:', notifError)
+    }
+    // --- Fim: Criação de Notificações ---
 
     return data
   } catch (err: any) {

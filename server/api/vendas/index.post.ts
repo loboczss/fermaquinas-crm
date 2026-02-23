@@ -1,4 +1,4 @@
-import { serverSupabaseClient } from '#supabase/server'
+import { serverSupabaseClient, serverSupabaseServiceRole } from '#supabase/server'
 
 /**
  * POST /api/vendas
@@ -34,7 +34,8 @@ export default defineEventHandler(async (event) => {
 
   // --- Início: Criação de Notificações ---
   try {
-    const { data: masters } = await client
+    const serviceClient = serverSupabaseServiceRole(event)
+    const { data: masters } = await serviceClient
       .from('profiles')
       .select('user_id')
       .eq('role', 'master')

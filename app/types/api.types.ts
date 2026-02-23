@@ -120,7 +120,7 @@ export interface IProduto {
 export interface INotificacao {
   id: number
   user_id: string
-  tipo: 'venda' | 'aniversario'
+  tipo: 'venda' | 'aniversario' | 'novo_cliente'
   titulo: string
   mensagem: string
   referencia_id: string | null

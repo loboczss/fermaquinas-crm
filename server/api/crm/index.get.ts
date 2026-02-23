@@ -1,4 +1,4 @@
-import { serverSupabaseClient } from '#supabase/server'
+import { serverSupabaseClient, serverSupabaseServiceRole } from '#supabase/server'
 
 /**
  * GET /api/crm
@@ -32,8 +32,9 @@ export default defineEventHandler(async (event) => {
 
   const isMaster = profile?.role === 'master'
 
-  // Montar query
-  let query = client
+  // Montar query (Global visibility via serviceRole)
+  const serviceClient = serverSupabaseServiceRole(event)
+  let query = serviceClient
     .from('crm_fermaquinas')
     .select('*', { count: 'exact' })
     .is('deleted_at', null)
