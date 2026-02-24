@@ -16,11 +16,13 @@ export default defineEventHandler(async (event) => {
 
   const body = await readBody(event)
 
-  // Extrair produtos_json para não causar erro de 'coluna inexistente' no Supabase
+  // Extrair produtos_json para não causar erro de 'coluna inexistente' antes do patch, 
+  // mas agora passamos a incluí-lo no payload para salvar no banco.
   const { produtos_json, ...vendaData } = body
 
   const payload = {
     ...vendaData,
+    produtos_json,
     vendedor_id: user.id,
     vendedor: body.vendedor || user.user_metadata?.full_name || user.email || 'Vendedor Desconhecido',
   }

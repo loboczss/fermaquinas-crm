@@ -75,11 +75,14 @@ export const useVendasStore = defineStore('vendasStore', {
             }
         },
 
-        async deleteVenda(id: number) {
+        async deleteVenda(id: number, devolverEstoque: boolean = false) {
             const toast = useToast()
 
             try {
-                await $fetch(`/api/vendas/${id}`, { method: 'DELETE' })
+                await $fetch(`/api/vendas/${id}`, {
+                    method: 'DELETE',
+                    query: { devolver_estoque: devolverEstoque }
+                })
                 toast.success('Venda excluída com sucesso!')
                 this.vendas = this.vendas.filter(v => v.id !== id)
                 this.totalItems--

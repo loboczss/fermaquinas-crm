@@ -22,6 +22,8 @@ const formatDate = (dateString: string) => {
 const showDeleteModal = ref(false)
 const deleteTarget = ref<{ id: number; nome: string; valor: number; data: string } | null>(null)
 const isDeleting = ref(false)
+const devolverItensEstoque = ref(true) // Default to true as it's the expected behavior most of the time
+
 
 const openDeleteModal = (venda: any) => {
   deleteTarget.value = {
@@ -42,7 +44,7 @@ const confirmDelete = async () => {
   if (!deleteTarget.value) return
   isDeleting.value = true
   try {
-    await store.deleteVenda(deleteTarget.value.id)
+    await store.deleteVenda(deleteTarget.value.id, devolverItensEstoque.value)
     closeDeleteModal()
   } catch {
     // store already toasts the error
@@ -148,70 +150,74 @@ const confirmDelete = async () => {
   </div>
 
   <!-- ═══ Delete Confirmation Modal ═══ -->
-  <Teleport to="body">
-    <transition
-      enter-active-class="ease-out duration-200"
-      enter-from-class="opacity-0"
-      enter-to-class="opacity-100"
-      leave-active-class="ease-in duration-150"
-      leave-from-class="opacity-100"
-      leave-to-class="opacity-0"
-    >
-      <div v-if="showDeleteModal" class="fixed inset-0 z-[200] flex items-center justify-center p-4">
-        <!-- Backdrop -->
-        <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="closeDeleteModal"></div>
-
-        <!-- Dialog -->
-        <transition
-          enter-active-class="ease-out duration-200"
-          enter-from-class="opacity-0 scale-95 translate-y-2"
-          enter-to-class="opacity-100 scale-100 translate-y-0"
-          leave-active-class="ease-in duration-150"
-          leave-from-class="opacity-100 scale-100"
-          leave-to-class="opacity-0 scale-95"
-        >
-          <div v-if="showDeleteModal" class="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-sm w-full p-6 z-10">
-            <!-- Warning Icon -->
-            <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30 mb-4">
-              <svg class="h-7 w-7 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
-              </svg>
-            </div>
-
-            <h3 class="text-lg font-bold text-slate-900 dark:text-white text-center">Excluir Venda</h3>
-            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400 text-center">Tem certeza que deseja excluir esta venda?<br />Esta ação não pode ser desfeita.</p>
-
-            <!-- Venda Info -->
-            <div v-if="deleteTarget" class="mt-4 bg-slate-50 dark:bg-slate-800 rounded-xl p-3 space-y-1 text-sm">
-              <p class="font-medium text-slate-700 dark:text-slate-200">{{ deleteTarget.nome }}</p>
-              <p class="text-slate-500 dark:text-slate-400">Valor: <span class="font-bold text-green-600 dark:text-green-400">{{ formatCurrency(deleteTarget.valor) }}</span></p>
-              <p class="text-slate-500 dark:text-slate-400">Data: {{ deleteTarget.data }}</p>
-            </div>
-
-            <!-- Actions -->
-            <div class="mt-6 flex gap-3">
-              <BaseButton
-                @click="closeDeleteModal"
-                :disabled="isDeleting"
-                variant="outline"
-                class="flex-1"
-              >
-                Cancelar
-              </BaseButton>
-              <BaseButton
-                @click="confirmDelete"
-                :disabled="isDeleting"
-                variant="danger"
-                class="flex-1 inline-flex items-center justify-center gap-2"
-              >
-                <svg v-if="isDeleting" class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" /><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" /></svg>
-                <template v-if="isDeleting">Excluindo...</template>
-                <template v-else>Excluir Venda</template>
-              </BaseButton>
-            </div>
-          </div>
-        </transition>
+  <BaseModal
+    :model-value="showDeleteModal"
+    @update:model-value="closeDeleteModal"
+    title="Excluir Venda"
+    max-width="md"
+  >
+    <div class="p-1">
+      <!-- Warning Icon -->
+      <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30 mb-4">
+        <svg class="h-7 w-7 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+        </svg>
       </div>
-    </transition>
-  </Teleport>
+
+      <div class="text-center mb-6">
+        <p class="text-slate-600 dark:text-slate-400">Tem certeza que deseja excluir esta venda?<br />Esta ação não pode ser desfeita.</p>
+      </div>
+
+      <!-- Venda Info -->
+      <div v-if="deleteTarget" class="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 space-y-2 border border-gray-100 dark:border-gray-800 mb-6">
+        <div class="flex justify-between items-center">
+          <span class="text-xs text-gray-500 uppercase font-semibold">Cliente</span>
+          <span class="text-sm font-medium text-gray-900 dark:text-white">{{ deleteTarget.nome }}</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-xs text-gray-500 uppercase font-semibold">Valor</span>
+          <span class="text-sm font-bold text-green-600 dark:text-green-400">{{ formatCurrency(deleteTarget.valor) }}</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-xs text-gray-500 uppercase font-semibold">Data</span>
+          <span class="text-sm text-gray-600 dark:text-gray-300">{{ deleteTarget.data }}</span>
+        </div>
+      </div>
+
+      <!-- Stock Return Option -->
+      <label class="relative flex items-center gap-3 p-4 bg-primary-50/50 dark:bg-primary-900/10 rounded-xl border border-primary-100 dark:border-primary-900/30 cursor-pointer group hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all mb-8">
+        <div class="flex items-center">
+          <input 
+            v-model="devolverItensEstoque"
+            type="checkbox" 
+            class="w-5 h-5 text-primary-600 border-gray-300 rounded focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700"
+          >
+        </div>
+        <div class="flex flex-col">
+          <span class="text-sm font-bold text-primary-900 dark:text-primary-100 italic">Devolver itens ao estoque?</span>
+          <span class="text-xs text-primary-600 dark:text-primary-400">As quantidades serão somadas ao saldo atual dos produtos.</span>
+        </div>
+      </label>
+
+      <!-- Actions -->
+      <div class="flex gap-3">
+        <BaseButton
+          @click="closeDeleteModal"
+          :disabled="isDeleting"
+          variant="outline"
+          class="flex-1"
+        >
+          Cancelar
+        </BaseButton>
+        <BaseButton
+          @click="confirmDelete"
+          :loading="isDeleting"
+          variant="danger"
+          class="flex-1"
+        >
+          Excluir Venda
+        </BaseButton>
+      </div>
+    </div>
+  </BaseModal>
 </template>
