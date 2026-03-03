@@ -278,9 +278,9 @@ Modified:   server/api/dropbox/upload.post.ts
 SUPABASE_URL=...
 SUPABASE_KEY=...
 SUPABASE_SECRET_KEY=...
-DROPBOX_CLIENT_ID=p2td8utre6n2u9t
-DROPBOX_CLIENT_SECRET=8bsie265nzi4pa0
-DROPBOX_REFRESH_TOKEN=PEJyHDw4RHoAAAAAAAAAAQS8AvxJJ2gc5ARvhPMlaqjXdPTgbl8cJ76VxjiPVxX4
+DROPBOX_CLIENT_ID=
+DROPBOX_CLIENT_SECRET=
+DROPBOX_REFRESH_TOKEN=
 ```
 
 ### **nuxt.config.ts**
@@ -297,10 +297,10 @@ runtimeConfig: {
 ## 📞 INFORMAÇÕES DE CONTEXTO
 
 **Usuário Atual (Teste):**
-- Email: `contato@evastur.com`
-- User ID: `c49e43d3-682e-4d6a-b3f6-7a7b444d9bdb`
+- Email: ``
+- User ID: ``
 - Role: `master`
-- Avatar URL (atual): `https://dl.dropboxusercontent.com/scl/fi/.../foto.jpg?rlkey=...&dl=0`
+- Avatar URL (atual): ``
 
 **Stack Técnico:**
 - Nuxt 4.3.1, Vue 3.5.28, TypeScript

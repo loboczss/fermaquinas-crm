@@ -69,6 +69,13 @@ const toggleMobileMenu = () => {
         >
           Vendas
         </NuxtLink>
+        <NuxtLink
+          to="/agente"
+          active-class="text-secondary-900 dark:text-white after:scale-x-100"
+          class="relative px-2.5 py-1.5 rounded-md text-sm font-semibold text-secondary-700 dark:text-secondary-300 hover:bg-secondary-100 dark:hover:bg-dark-bg transition-all duration-200 hover:-translate-y-0.5 after:absolute after:left-0 after:-bottom-1 after:h-0.5 after:w-full after:bg-primary-500 after:scale-x-0 after:origin-left after:transition-transform after:duration-200 hover:after:scale-x-100"
+        >
+          Agente
+        </NuxtLink>
       </nav>
 
       <!-- Right Side Actions -->
@@ -131,6 +138,14 @@ const toggleMobileMenu = () => {
             class="block px-3 py-2.5 rounded-xl text-base font-medium text-secondary-700 dark:text-secondary-300 hover:bg-secondary-50 dark:hover:bg-dark-bg transition-colors"
           >
             Vendas
+          </NuxtLink>
+          <NuxtLink
+            to="/agente"
+            @click="isMobileMenuOpen = false"
+            active-class="bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 font-semibold"
+            class="block px-3 py-2.5 rounded-xl text-base font-medium text-secondary-700 dark:text-secondary-300 hover:bg-secondary-50 dark:hover:bg-dark-bg transition-colors"
+          >
+            Agente
           </NuxtLink>
         </div>
       </div>

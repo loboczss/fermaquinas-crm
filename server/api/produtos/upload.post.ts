@@ -139,7 +139,36 @@ export default defineEventHandler(async (event) => {
             }
         }
 
-        // 10. Sucesso
+        // 10. Integração com N8N Webhook (Backup / Tratamento Opcional por IA)
+        const config = useRuntimeConfig(event)
+        const webhookUrl = config.n8nWebhookRag || process.env.N8N_WEBHOOK_RAG
+
+        if (webhookUrl && typeof webhookUrl === 'string' && webhookUrl.trim() !== '') {
+            try {
+                const base64String = file.data.toString('base64')
+                const fileName = file.filename || 'DATABASE_FERMAQUINAS.xlsx'
+                const fileExtension = fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase()
+
+                console.log(`[DISPARANDO WEBHOOK N8N - PRODUTOS] POST para ${webhookUrl}`)
+
+                await $fetch(webhookUrl, {
+                    method: 'POST',
+                    body: {
+                        source: 'produtos_upload',
+                        fileName: fileName,
+                        fileExtension: fileExtension,
+                        dropboxUrl: '', // Não temos URL publico por ser de database interno
+                        base64: base64String,
+                        content: 'Planilha Mestre de Produtos Submetida via Upload do CRM'
+                    }
+                })
+                console.log('[SUCCESS N8N] Notificação de atualização enviada ao webhook')
+            } catch (n8nError) {
+                console.error('[ERROR N8N]', n8nError)
+            }
+        }
+
+        // 11. Sucesso
         return { success: true, total: processedRows.length }
 
     } catch (error: any) {

@@ -38,5 +38,8 @@ export default defineNuxtConfig({
     dropboxRefreshToken: process.env.DROPBOX_REFRESH_TOKEN || '',
     resendApiKey: process.env.RESEND_API_KEY || '',
     mailerSenderEmail: process.env.MAILER_SENDER_EMAIL || '',
+
+    // N8N Webhooks
+    n8nWebhookRag: process.env.N8N_WEBHOOK_RAG || ''
   }
 })
